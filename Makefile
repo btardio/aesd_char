@@ -40,9 +40,6 @@ test_runner: test/aesd-circular-buffer_test.c
 	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb test/aesd-circular-buffer_test.c test/test_runners/aesd-circular-buffer_test_runner.c
 
 
-
-
-
 clean:
 	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
 
