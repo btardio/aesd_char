@@ -350,7 +350,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 			
 			if (current->pid == dev->pids[t].pid ) { //&& dev->pids[t].completed >= dev->buffer.s_cb) {
 					printk(KERN_WARNING "DDD\n");
-				dev->pids[t].pid = -1;
+				dev->pids[t].pid = 0;
 				mutex_unlock(&dev->lock);
 				return 0;
 			} else if (dev->pids[t].pid == 0) {
