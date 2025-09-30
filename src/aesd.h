@@ -9,7 +9,7 @@
 
 
 #include "aesd-circular-buffer.h"
-
+//#include "queue.h"
 
 
 #define CIRCULAR_INCREMENT(number, limit) ((number + 1) % limit)
@@ -22,6 +22,13 @@ struct aesd_qset {
 	void **data;
 	struct aesd_qset *next;
 };
+
+
+
+
+
+
+
 
 
 
@@ -101,13 +108,26 @@ struct aesd_qset {
 #define SCULL_IOCHQUANTUM _IO(SCULL_IOC_MAGIC,  11)
 #define SCULL_IOCHQSET    _IO(SCULL_IOC_MAGIC,  12)
 
+struct pidnode
+{
+	pid_t pid;
+	int completed;
+
+};
+
+typedef struct pidnode _pidnode;
+
+#define PIDS_ARRAY_SIZE 10
 
 
-
-
-// this structure stays the same
-//
-
+//typedef struct node
+//{
+//    char c;
+//    TAILQ_ENTRY(node) nodes;
+//} node_t;
+// This typedef creates a head_t that makes it easy for us to pass pointers to
+// head_t without the compiler complaining.
+//typedef TAILQ_HEAD(head_s, node) head_t;
 
 struct aesd_dev {
 #ifdef __KERNEL__
@@ -124,10 +144,13 @@ struct aesd_dev {
 	char* newlineb;
 	int s_newlineb;
 	struct aesd_circular_buffer buffer;
-
+	_pidnode pids[PIDS_ARRAY_SIZE];
 };
 
 typedef struct aesd_dev _aesd_dev;
+
+
+//TAILQ_INIT(head);
 
 
 void newline_structure_add(

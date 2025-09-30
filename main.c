@@ -308,9 +308,9 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 //	for ( i = 0; i < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; i++){
 //		printk(KERN_WARNING "buffer[%d]: %s\n",i, buffer.entry[i].buffptr);
 //	}
-
+	int openindex;
 	printk(KERN_INFO "The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
-
+	int t;
 	struct aesd_dev *dev = filp->private_data;
        	struct aesd_circular_buffer *buffer = &dev->buffer;
 	struct aesd_qset *dptr;	/* the first listitem */
@@ -340,8 +340,36 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	/* read only up to the end of this quantum */
 //	if (count > quantum - q_pos)
 //		count = quantum - q_pos;
-
 	
+	openindex = -1;
+	printk(KERN_WARNING "AAA\n");
+	if (current->comm[0] == 'c' && current->comm[1] == 'a' && current->comm[2] == 't') {
+			printk(KERN_WARNING "BBB\n");
+		for ( t = 0; t < PIDS_ARRAY_SIZE; t++ ) {
+			printk(KERN_WARNING "dev->pids[t].pid: %d\n", dev->pids[t].pid);
+			
+			if (current->pid == dev->pids[t].pid ) { //&& dev->pids[t].completed >= dev->buffer.s_cb) {
+					printk(KERN_WARNING "DDD\n");
+				dev->pids[t].pid = -1;
+				mutex_unlock(&dev->lock);
+				return 0;
+			} else if (dev->pids[t].pid == 0) {
+					printk(KERN_WARNING "EEE\n");
+				openindex = t;
+			}
+		}
+		printk(KERN_WARNING "openindex: %d\n", openindex);
+		if (openindex == 0) {
+				printk(KERN_WARNING "FFF\n");
+			mutex_unlock(&dev->lock);
+			return -1;
+		} else {
+	printk(KERN_WARNING "GGG\n");
+			dev->pids[openindex].pid = current->pid;
+		}
+	}
+
+
 	int total_size = 0;
 	int old_count = buffer->count;
 	int old_out_offs = buffer->out_offs;
@@ -883,7 +911,7 @@ int aesd_init_module(void)
 {
 
 	printk(KERN_WARNING "~!@#\n");
-
+	int b;
 	int result, i;
 	dev_t dev = 0;
 
@@ -924,6 +952,11 @@ int aesd_init_module(void)
 		mutex_init(&aesd_devices[i].lock);
 		aesd_setup_cdev(&aesd_devices[i], i);
 		aesd_devices[i].buffer.in_offs = aesd_devices[i].buffer.out_offs = 0;
+		for ( b = 0; b < PIDS_ARRAY_SIZE; b++) {
+			aesd_devices[i].pids[b].pid = 0;
+			aesd_devices[i].pids[b].completed = 0;
+               	}
+
 	}
 printk(KERN_WARNING "000");
         /* At this point call the init function for any friend device */
