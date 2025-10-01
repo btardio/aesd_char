@@ -84,8 +84,9 @@ static int aesd_u_open(struct inode *inode, struct file *filp)
 
 /* then, everything else is copied from the bare aesd device */
 
-	if ((filp->f_flags & O_ACCMODE) == O_WRONLY)
-		aesd_trim(dev);
+	//if ((filp->f_flags & O_ACCMODE) == O_WRONLY)
+	//	aesd_trim(dev);
+
 	filp->private_data = dev;
 	return 0;          /* success */
 }
@@ -108,7 +109,9 @@ struct file_operations aesd_user_fops = {
 	.llseek =     aesd_llseek,
 	.read =       aesd_read,
 	.write =      aesd_write,
-	.unlocked_ioctl = aesd_ioctl,
+	.unlocked_ioctl = NULL, //aesd_ioctl,
+
+
 	.open =       aesd_u_open,
 	.release =    aesd_u_release,
 };
@@ -143,8 +146,8 @@ static void aesd_access_setup (dev_t devno, struct aesd_adev_info *devinfo)
 	int err;
 
 	/* Initialize the device structure */
-	dev->quantum = aesd_quantum;
-	dev->qset = aesd_qset;
+	//dev->quantum = aesd_quantum;
+	//dev->qset = aesd_qset;
 	mutex_init(&dev->lock);
 
 	/* Do the cdev stuff. */
@@ -194,7 +197,7 @@ void aesd_access_cleanup(void)
 	for (i = 0; i < SCULL_N_ADEVS; i++) {
 		struct aesd_dev *dev = aesd_access_devs[i].aesddev;
 		cdev_del(&dev->cdev);
-		aesd_trim(aesd_access_devs[i].aesddev);
+		//aesd_trim(aesd_access_devs[i].aesddev);
 	}
 
 	/* Free up our number space */

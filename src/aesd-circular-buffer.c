@@ -25,10 +25,6 @@
 #endif
 
 
-
-
-
-
 void newline_structure_add(
 		struct aesd_dev *dev,
 		struct aesd_buffer_entry *entry, 

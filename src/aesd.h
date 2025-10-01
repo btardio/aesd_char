@@ -7,61 +7,17 @@
 #include <sys/types.h>
 #endif
 
-
 #include "aesd-circular-buffer.h"
-//#include "queue.h"
 
 
 #define CIRCULAR_INCREMENT(number, limit) ((number + 1) % limit)
-
-// TODO: this is what becomes the circular buffer
-/*
- * Representation of aesd quantum sets.
- */
-struct aesd_qset {
-	void **data;
-	struct aesd_qset *next;
-};
-
-
-
-
-
-
-
-
-
-
-
 
 #ifndef SCULL_P_BUFFER
 #define SCULL_P_BUFFER 4000
 #endif
 
-
-
-
 #define AESD_DEBUG 1  //Remove comment on this line to enable debug
 
-//#undef PDEBUG             /* undef it, just in case */
-//#ifdef AESD_DEBUG
-//#  ifdef __KERNEL__
-//     /* This one if debugging is on, and kernel space */
-//#    define PDEBUG(fmt, args...) printk( KERN_DEBUG "aesdchar: " fmt, ## args)
-//#  else
-//     /* This one for user space */
-//#    define PDEBUG(fmt, args...) fprintf(stderr, fmt, ## args)
-//#  endif
-//#else
-//#  define PDEBUG(fmt, args...) /* not debugging: nothing */
-//#endif
-
-
-
-
-
-
-// my understanding of these is bad but i think its doing what this does:
 // https://tldp.org/LDP/lkmpg/2.4/html/c768.htm
 //
 //
@@ -89,10 +45,6 @@ struct aesd_qset {
 //  return -EACCES;
 //}
 //
-//
-//
-//
-//
 
 
 #define SCULL_IOCSQUANTUM _IOW(SCULL_IOC_MAGIC,  1, int)
@@ -119,16 +71,6 @@ typedef struct pidnode _pidnode;
 
 #define PIDS_ARRAY_SIZE 10
 
-
-//typedef struct node
-//{
-//    char c;
-//    TAILQ_ENTRY(node) nodes;
-//} node_t;
-// This typedef creates a head_t that makes it easy for us to pass pointers to
-// head_t without the compiler complaining.
-//typedef TAILQ_HEAD(head_s, node) head_t;
-
 struct aesd_dev {
 #ifdef __KERNEL__
 	struct aesd_qset *data;  /* Pointer to first quantum set */
@@ -149,10 +91,6 @@ struct aesd_dev {
 
 typedef struct aesd_dev _aesd_dev;
 
-
-//TAILQ_INIT(head);
-
-
 void newline_structure_add(
 		struct aesd_dev *dev,
 		struct aesd_buffer_entry *entry, 
@@ -160,14 +98,6 @@ void newline_structure_add(
 		char* in_chars,
 		int s_in_chars,
 		int foundNewline);
-
-
-
-
-
-
-
-
 
 
 /*
@@ -180,15 +110,13 @@ int     aesd_access_init(dev_t dev);
 void    aesd_access_cleanup(void);
 void	aesd_class_cleanup(void);
 
-int     aesd_trim(struct aesd_dev *dev);
-
 #ifdef __KERNEL__
 ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
                    loff_t *f_pos);
 ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
                     loff_t *f_pos);
 loff_t  aesd_llseek(struct file *filp, loff_t off, int whence);
-long     aesd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+//long     aesd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 #endif
 
 
@@ -205,13 +133,6 @@ long     aesd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 #ifndef SCULL_NR_DEVS
 #define SCULL_NR_DEVS 1    /* aesd0 through aesd3 */
 #endif
-
-//#ifndef SCULL_P_NR_DEVS
-//#define SCULL_P_NR_DEVS 4  /* aesdpipe0 through aesdpipe3 */
-//#endif
-
-
-
 
 
 #define SCULL_IOCRESET    _IO(SCULL_IOC_MAGIC, 0)
@@ -233,24 +154,6 @@ long     aesd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 
 #define SCULL_IOC_MAGIC  'k'
 
-
-
-
-
-// required by access.c
-
-extern int aesd_quantum;
-extern int aesd_qset;
-
-
-
-
-
-
-
-// debugging - not a thing setup yet
-//
-//
 
 
 

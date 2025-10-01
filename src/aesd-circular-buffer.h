@@ -1,8 +1,8 @@
 /*
  * aesd-circular-buffer.h
  *
- *  Created on: March 1st, 2020
- *      Author: Dan Walkes
+ *  Created on: 2025-09-30
+ *      Author: Brandon Tardio
  */
 
 
@@ -18,8 +18,6 @@
 #endif
 
 #define AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED 10
-
-
 
 struct aesd_buffer_entry
 {

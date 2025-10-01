@@ -47,12 +47,10 @@ clean:
 
 else
     # called from kernel build system: just declare what our modules are
-#    obj-m := hello.o hellop.o seq.o jit.o jiq.o sleepy.o complete.o \
-#             silly.o faulty.o kdatasize.o kdataalign.o
 
-	aesdcircular-objs := main.o access.o aesd-circular-buffer.o
+	aesdchar-objs := main.o access.o aesd-circular-buffer.o
 
-	obj-m := aesdcircular.o
+	obj-m := aesdchar.o
 endif
 
 
