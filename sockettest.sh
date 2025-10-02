@@ -1,9 +1,9 @@
-# !/bin/bash
+#!/bin/bash
 # Tester script for sockets using Netcat
 
-pushd `dirname $0`
 target=localhost
 port=9000
+rc=0
 function printusage
 {
 	echo "Usage: $0 [-t target_ip] [-p port]"
@@ -36,6 +36,25 @@ done
 
 echo "Testing target ${target} on port ${port}"
 
+check_output()
+{
+	local read_file=$1
+	local expected_file=$2
+	diff ${read_file} ${expected_file}
+	if [ $? -ne 0 ]; then
+		echo "difference detected, expected:"
+		cat ${expected_file}
+		echo "but found"
+		cat ${read_file}
+		rc=-1
+	fi
+}
+function send_socket_string
+{
+	string=$1
+	result_file=$2
+	echo ${string} | nc ${target} ${port} -w 1 > ${result_file}
+}
 # Tests to ensure socket send/receive is working properly on an aesdsocket utility
 # running on the system
 # @param1 : The string to send
@@ -45,14 +64,11 @@ function test_send_socket_string
 {
 	string=$1
 	prev_file=$2
-	new_file=$(mktemp)
-	expected_file=$(mktemp)
-
-	echo "sending string ${string} to ${target} on port ${port}"
-	echo ${string} | nc ${target} ${port} -w 1 > ${new_file}
+	new_file=`tempfile`
+	expected_file=`tempfile`
+	send_socket_string ${string} ${new_file}
 	cp ${prev_file} ${expected_file}
 	echo ${string} >> ${expected_file}
-	
 	diff ${expected_file} ${new_file} > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "Differences found after sending ${string} to ${target} on port ${port}"
@@ -71,17 +87,51 @@ function test_send_socket_string
 	fi
 }
 
-comparefile=$(mktemp)
-test_send_socket_string "abcdefg" ${comparefile}
-test_send_socket_string "hijklmnop" ${comparefile}
-test_send_socket_string "1234567890" ${comparefile}
-test_send_socket_string "9876543210" ${comparefile}
-if [ -e long_string.txt ]; then
-    echo "Sending long string from long_string.txt file"
-    sendstring=`cat long_string.txt`
-    test_send_socket_string ${sendstring} ${comparefile}
+comparefile=`tempfile`
+test_send_socket_string "swrite1" ${comparefile}
+test_send_socket_string "swrite2" ${comparefile}
+test_send_socket_string "swrite3" ${comparefile}
+test_send_socket_string "swrite4" ${comparefile}
+test_send_socket_string "swrite5" ${comparefile}
+test_send_socket_string "swrite6" ${comparefile}
+test_send_socket_string "swrite7" ${comparefile}
+test_send_socket_string "swrite8" ${comparefile}
+test_send_socket_string "swrite9" ${comparefile}
+test_send_socket_string "swrite10" ${comparefile}
+
+seek_result=`tempfile`
+echo "Sending ioc seekto command for offset 0,2"
+send_socket_string "AESDCHAR_IOCSEEKTO:0,2"  ${seek_result}
+cat ${seek_result}
+cat > ${comparefile}  << EOF
+rite1
+swrite2
+swrite3
+swrite4
+swrite5
+swrite6
+swrite7
+swrite8
+swrite9
+swrite10
+EOF
+
+check_output ${seek_result} ${comparefile}
+
+
+echo "Sending ioc seekto command for offset 8,6"
+send_socket_string "AESDCHAR_IOCSEEKTO:8,6"  ${seek_result}
+cat ${seek_result}
+
+cat > ${comparefile}  << EOF
+9
+swrite10
+EOF
+
+
+check_output ${seek_result} ${comparefile}
+
+if [ ${rc} -eq 0 ]; then
+	echo "Test passed"
 fi
-echo "Full contents sent:"
-cat ${comparefile}
-rm ${comparefile}
-echo "Tests complete with success!"
+exit ${rc}

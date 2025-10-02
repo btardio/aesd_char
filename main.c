@@ -63,25 +63,76 @@ int aesd_open(struct inode *inode, struct file *filp)
 	dev = container_of(inode->i_cdev, struct aesd_dev, cdev);
 	filp->private_data = dev; /* for other methods */
 
-	// This is not implemented
+	int pid_index;
 	
+	printk(KERN_WARNING "aesd_open  The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
+
 	/* now trim to 0 the length of the device if open was write-only */
-	if ( (filp->f_flags & O_ACCMODE) == O_WRONLY) {
-		if (mutex_lock_interruptible(&dev->lock))
-			return -ERESTARTSYS;
+//	if ( (filp->f_flags & O_ACCMODE) == O_WRONLY) {
+	if (mutex_lock_interruptible(&dev->lock))
+		return -ERESTARTSYS;
 		// aesd_trim(dev); /* ignore errors 
-		mutex_unlock(&dev->lock);
-	}
+		
+	pid_index = get_open_pid_or_index(dev);
+	dev->pids[pid_index].pid = current->pid;
+	dev->pids[pid_index].fpos = 0;
+	dev->pids[pid_index].completed = 0;
+	print_pids(dev);
+	mutex_unlock(&dev->lock);
 
 	return 0;          /* success */
 }
 
 int aesd_release(struct inode *inode, struct file *filp)
 {
+	int pid_index;
+	struct aesd_dev *dev;
+
+	dev = filp->private_data;
+
+	if (mutex_lock_interruptible(&dev->lock))
+		return -ERESTARTSYS;
+
+	printk(KERN_WARNING "aesd_release  The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
+
+	pid_index = get_open_pid_or_index(dev);
+
+	if (pid_index != -1) {
+		dev->pids[pid_index].pid = 0;
+		dev->pids[pid_index].fpos = 0;
+		dev->pids[pid_index].completed = 0;
+	}
+
+
+	print_pids(dev);
+	mutex_unlock(&dev->lock);
+
 	return 0;
 }
 
+void print_pids(struct aesd_dev *dev) {
+	
+	int pid_index;
+	for ( pid_index = 0; pid_index < PIDS_ARRAY_SIZE; pid_index++ ) {
+		printk(KERN_WARNING "dev->pids[i] {.pid .fpos .completed }: %d %d %d\n", dev->pids[pid_index].pid, dev->pids[pid_index].fpos, dev->pids[pid_index].completed);
+	}
+	return;
+}
 
+int get_open_pid_or_index(struct aesd_dev *dev ) {
+	int openindex = -1;
+	int t;
+	for ( t = 0; t < PIDS_ARRAY_SIZE; t++ ) {
+		
+		if (current->pid == dev->pids[t].pid ) {
+			return t;
+		} else if (dev->pids[t].pid == 0) {
+			openindex = t;
+
+		}
+	}
+	return openindex;
+}
 
 /*
  * Data management: read and write
@@ -97,7 +148,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	//	}
 	
 	int openindex;
-	printk(KERN_INFO "The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
+	printk(KERN_INFO "aesd_read The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
 	int t;
 	struct aesd_dev *dev = filp->private_data;
        	struct aesd_circular_buffer *buffer = &dev->buffer;
@@ -106,35 +157,51 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	int itemsize = quantum * qset; /* how many bytes in the listitem */
 	int item, s_pos, q_pos, rest;
 	ssize_t retval = 0;
+	int fpos;
+	int pid_index;
 	printk(KERN_WARNING "f_pos: %d\n", *f_pos);
 	if (mutex_lock_interruptible(&dev->lock))
 		return -ERESTARTSYS;
 
+
+	pid_index = get_open_pid_or_index(dev );
+
+	//dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + count;
+	
+
 	// keep track of the pid, if the process id is the same ( cat for example ), and it read once
 	// return 0 to get it to stop its loop, this only works because the size is small and will
 	// never be over the 131072 mark, this can be improved
-	
+/*	
 	openindex = -1;
-	if (current->comm[0] == 'c' && current->comm[1] == 'a' && current->comm[2] == 't') {
-		for ( t = 0; t < PIDS_ARRAY_SIZE; t++ ) {
-			printk(KERN_WARNING "dev->pids[t].pid: %d\n", dev->pids[t].pid);
-			
-			if (current->pid == dev->pids[t].pid ) { //&& dev->pids[t].completed >= dev->buffer.s_cb) {
-				dev->pids[t].pid = 0;
-				mutex_unlock(&dev->lock);
-				return 0;
-			} else if (dev->pids[t].pid == 0) {
-				openindex = t;
-			}
-		}
-		printk(KERN_WARNING "openindex: %d\n", openindex);
-		if (openindex == 0) {
+	
+	for ( t = 0; t < PIDS_ARRAY_SIZE; t++ ) {
+		printk(KERN_WARNING "dev->pids[t].pid: %d\n", dev->pids[t].pid);
+		
+		if (current->pid == dev->pids[t].pid ) { //&& dev->pids[t].completed >= dev->buffer.s_cb) {
+			dev->pids[t].pid = 0;
+			fpos = dev->pids[t].fpos;
 			mutex_unlock(&dev->lock);
-			return -1;
-		} else {
-			dev->pids[openindex].pid = current->pid;
+			return 0;
+		} else if (dev->pids[t].pid == 0) {
+			openindex = t;
+
 		}
 	}
+	
+*/	
+
+
+	printk(KERN_WARNING "openindex: %d\n", openindex);
+	printk(KERN_WARNING "pid fpos: %d\n", fpos);
+
+	if (openindex == 0) {
+		mutex_unlock(&dev->lock);
+		return -1;
+	} else {
+		dev->pids[openindex].pid = current->pid;
+	}
+//	}
 
 
 	int total_size = 0;
@@ -177,9 +244,12 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 		b_offset += buffer->entry[buffer->out_offs].size;
 		
 		buffer->out_offs = (buffer->out_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
-		printk(KERN_WARNING "temp_buffer: %s\n", temp_buffer);
+//		printk(KERN_WARNING "temp_buffer: %s\n", temp_buffer);
 
 	}
+
+
+	printk(KERN_WARNING "temp_buffer: %s\n", temp_buffer);
 
 	//buffer.count = old_count;
 	buffer->out_offs = old_out_offs;
@@ -197,8 +267,20 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	retval = total_size;
 
   out:
+	int rval;
+
+	if (dev->pids[pid_index].fpos >= buffer->s_cb ){
+		rval = 0;
+		dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + count;
+
+	} else {	       
+		dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + count;
+		rval = buffer->s_cb;
+	}
+
 	mutex_unlock(&dev->lock);
-	return buffer->s_cb;
+	
+	return rval;
 }
 
 ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
@@ -428,9 +510,19 @@ long aesd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 loff_t aesd_llseek(struct file *filp, loff_t off, int whence)
 {
+	printk(KERN_INFO "aesd_llseek The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
 
-	struct aesd_dev *dev = filp->private_data;
+	printk(KERN_WARNING "loff_t off: %d\n", off);
+	printk(KERN_WARNING "whence: %d\n", whence);
+	int pid_index;
+	struct aesd_dev *dev;
+	dev = filp->private_data;
 	loff_t newpos;
+
+	if (mutex_lock_interruptible(&dev->lock))
+		return -ERESTARTSYS;
+
+	pid_index = get_open_pid_or_index(dev);
 
 	switch(whence) {
 	  case 0: /* SEEK_SET */
@@ -438,23 +530,35 @@ loff_t aesd_llseek(struct file *filp, loff_t off, int whence)
 		break;
 
 	  case 1: /* SEEK_CUR */
-		newpos = filp->f_pos + off;
+		//newpos = filp->f_pos + off;
+		newpos = dev->pids[pid_index].fpos + off;
 		break;
 
 	  case 2: /* SEEK_END */
-		// count all non null in circular buffer and add size
-
 		newpos = dev->buffer.s_cb;
-		
-		//newpos = dev->size + off;
-		
 		break;
 
 	  default: /* can't happen */
+		mutex_unlock(&dev->lock);
 		return -EINVAL;
 	}
-	if (newpos < 0) return -EINVAL;
+	if (newpos < 0) { 
+		mutex_unlock(&dev->lock);
+		return -EINVAL;
+	}
+
+	// if position is greater than the end
+	if (newpos > dev->buffer.s_cb) { 
+		mutex_unlock(&dev->lock);
+		return -EINVAL;
+	}
+
+	dev->pids[pid_index].fpos = newpos;
+
 	filp->f_pos = newpos;
+	print_pids(dev);
+	mutex_unlock(&dev->lock);
+
 	return newpos;
 }
 
@@ -570,6 +674,7 @@ int aesd_init_module(void)
 		for ( b = 0; b < PIDS_ARRAY_SIZE; b++) {
 			aesd_devices[i].pids[b].pid = 0;
 			aesd_devices[i].pids[b].completed = 0;
+			aesd_devices[i].pids[b].fpos = 0;
                	}
 
 	}

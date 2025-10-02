@@ -64,7 +64,7 @@ struct pidnode
 {
 	pid_t pid;
 	int completed;
-
+	int fpos;
 };
 
 typedef struct pidnode _pidnode;
@@ -99,6 +99,10 @@ void newline_structure_add(
 		int s_in_chars,
 		int foundNewline);
 
+
+int get_open_pid_or_index(struct aesd_dev* dev);
+
+void print_pids(struct aesd_dev *dev);
 
 /*
  * Prototypes for shared functions
