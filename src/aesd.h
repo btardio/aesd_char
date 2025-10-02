@@ -9,6 +9,8 @@
 
 #include "aesd-circular-buffer.h"
 
+#define MAX(a,b) ( ( a > b ) ? ( a ) : ( b ) )
+#define MIN(a,b) ( ( a < b ) ? ( a ) : ( b ) )
 
 #define CIRCULAR_INCREMENT(number, limit) ((number + 1) % limit)
 
@@ -65,6 +67,7 @@ struct pidnode
 	pid_t pid;
 	int completed;
 	int fpos;
+	char* fpos_buffer;
 };
 
 typedef struct pidnode _pidnode;

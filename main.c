@@ -234,7 +234,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	printk(KERN_WARNING "count: %d\n", count);
 
 	// remove me
-	if (dev->pids[pid_index].fpos > 1 ) {
+	if (dev->pids[pid_index].fpos > 3 ) {
 		mutex_unlock(&dev->lock);
 
 		return 0;
@@ -264,36 +264,42 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	//		printk(KERN_WARNING "temp_buffer: %s\n", temp_buffer);
 
 		}
-		printk(KERN_WARNING "copy_to_user: %.*s\n", MIN(count, buffer->s_cb - dev->pids[pid_index].fpos), dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos);
-		printk(KERN_WARNING "fpos: %d\n", dev->pids[pid_index].fpos);
-		printk(KERN_WARNING "f_pos: %d\n", f_pos);
+		printk(KERN_WARNING "000 buffadd: %d\n", *buf);
+		printk(KERN_WARNING "000 copy_to_user: %.*s\n", MIN(count, buffer->s_cb - dev->pids[pid_index].fpos), dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos);
+		printk(KERN_WARNING "000 fpos: %d\n", dev->pids[pid_index].fpos);
+		printk(KERN_WARNING "000 f_pos: %d\n", f_pos);
 
-		if ( copy_to_user(buf, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, 1 ) ) { //MIN(count, buffer->s_cb - dev->pids[pid_index].fpos ) ) ) {
+		if ( copy_to_user(buf, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, dev->buffer.s_cb ) ) { //MIN(count, buffer->s_cb - dev->pids[pid_index].fpos ) ) ) {
 			retval = -EFAULT;
 			kfree(dev->pids[pid_index].fpos_buffer);
 			goto out;
 		}
 
 	} else if ( dev->pids[pid_index].fpos < buffer->s_cb ) {
-		printk(KERN_WARNING "copy_to_user: %.*s\n", MIN(count, buffer->s_cb - dev->pids[pid_index].fpos), dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos);
-		printk(KERN_WARNING "fpos: %d\n", dev->pids[pid_index].fpos);
-		printk(KERN_WARNING "f_pos: %d\n", f_pos);
+		printk(KERN_WARNING "111 buffaddr: %d\n", *buf);
+		printk(KERN_WARNING "111 copy_to_user: %.*s\n", MIN(count, buffer->s_cb - dev->pids[pid_index].fpos), dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos);
+		printk(KERN_WARNING "111 fpos: %d\n", dev->pids[pid_index].fpos);
+		printk(KERN_WARNING "111 f_pos: %d\n", f_pos);
 //		return 0;
-		if ( memcpy(buf + dev->pids[pid_index].fpos, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, 1 ) ) { // MIN(count, buffer->s_cb - dev->pids[pid_index].fpos ) ) ) {
-			retval = -EFAULT;
-			//kfree(dev->pids[pid_index].fpos_buffer);
-			goto out;
-		}
+		memcpy(buf + dev->pids[pid_index].fpos, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, 1 ); // { // MIN(count, buffer->s_cb - dev->pids[pid_index].fpos ) ) ) {
 
-		mutex_unlock(&dev->lock);
-		return 1;
+		*buf += 1;
+		//			printk(KERN_WARNING "erroring\n");
+//			retval = -EFAULT;
+			//kfree(dev->pids[pid_index].fpos_buffer);
+//			goto out;
+//		}
+
+//		mutex_unlock(&dev->lock);
+//		return 1;
+		*f_pos += 1;
 	}
 
 	printk(KERN_WARNING "temp_buffer: %s\n", dev->pids[pid_index].fpos_buffer);
 
 	//buffer.count = old_count;
 	buffer->out_offs = old_out_offs;
-
+//	*buf += 1;
 /*	
 	if ( copy_to_user(buf, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, count) ) {
 		retval = -EFAULT;
@@ -313,12 +319,12 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	if (dev->pids[pid_index].fpos >= buffer->s_cb ){
 		rval = 0;
 		dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + count;
-		kfree(dev->pids[pid_index].fpos_buffer);
-		dev->pids[pid_index].fpos_buffer = NULL;
+		//kfree(dev->pids[pid_index].fpos_buffer);
+		//dev->pids[pid_index].fpos_buffer = NULL;
 
 	} else {	       
 		dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + count;
-		rval = dev->pids[pid_index].fpos; //buffer->s_cb;
+		rval = 1; dev->pids[pid_index].fpos; //buffer->s_cb;
 	}
 
 	mutex_unlock(&dev->lock);
