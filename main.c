@@ -230,12 +230,12 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 		// write to temp_buffer
 		if (buffer->entry[buffer->out_offs].buffptr != NULL) {
 			memcpy(temp_buffer + b_offset, 
-					buffer->entry[buffer->out_offs + dev->pids[pid_index].index_offset % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].buffptr, 
-					buffer->entry[buffer->out_offs + dev->pids[pid_index].index_offset % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size);
+					buffer->entry[(buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].buffptr, 
+					buffer->entry[(buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size);
 		}
 		
 		
-		b_offset += buffer->entry[buffer->out_offs].size;
+		b_offset += buffer->entry[ (buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size;
 		
 		buffer->out_offs = (buffer->out_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
 		printk(KERN_WARNING "temp_buffer: %s\n", temp_buffer);
@@ -392,12 +392,13 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 			// write to temp_buffer
 			if (buffer->entry[buffer->out_offs].buffptr != NULL) {
 				memcpy(dev->pids[pid_index].fpos_buffer + b_offset, 
-					buffer->entry[buffer->out_offs + dev->pids[pid_index].index_offset % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].buffptr, 
-					buffer->entry[buffer->out_offs + dev->pids[pid_index].index_offset % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size);
+					buffer->entry[(buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].buffptr, 
+					buffer->entry[(buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size);
 			}
 		
 		
-			b_offset += buffer->entry[buffer->out_offs].size;
+			//b_offset += buffer->entry[buffer->out_offs].size;
+			b_offset += buffer->entry[ (buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size;
 
 //			// write to temp_buffer
 //			if (buffer->entry[buffer->out_offs].buffptr != NULL) {
