@@ -37,13 +37,17 @@
 
 int aesd_p_buffer =  SCULL_P_BUFFER;
 
-int aesd_major =   SCULL_MAJOR;
+int aesd_major =   MAJOR_NUM;
 int aesd_minor =   0;
 int aesd_nr_devs = SCULL_NR_DEVS;	// number of bare aesd devices
 
+unsigned long ioctl_ptr;
+unsigned long *as_ptr_ioctl_ptr;
 module_param(aesd_major, int, S_IRUGO);
 module_param(aesd_minor, int, S_IRUGO);
 module_param(aesd_nr_devs, int, S_IRUGO);
+
+//module_param(ioctl_ptr, ulong, S_IRUGO);
 
 MODULE_AUTHOR("Brandon Tardio");
 MODULE_LICENSE("GPL");
@@ -573,19 +577,87 @@ ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
 /*
  * The ioctl() implementation
  */
-/*
-long aesd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+
+long aesd_ioctl(struct file *filp, unsigned int ioctl_num, unsigned long ioctl_param)
 {
 
-	int err = 0, tmp;
-	int retval = 0;
+
+	int i;
+	int *temp;
+	char ch;
+
+	/* 
+	 * Switch according to the ioctl called 
+	 */
+	switch (ioctl_num) {
+	case IOCTL_SET_MSG:
+		/* 
+		 * Receive a pointer to a message (in user space) and set that
+		 * to be the device's message.  Get the parameter given to 
+		 * ioctl by the process. 
+		 */
+		temp = (int *)ioctl_param;
+
+		/* 
+		 * Find the length of the message 
+		 */
+		get_user(ch, temp);
+		//for (i = 0; ch && i < BUF_LEN; i++, temp++)
+		//get_user(ch, temp);
+
+		//device_write(file, (char *)ioctl_param, i, 0);
+		printk(KERN_WARNING "temp: %d\n", *temp);
+		break;
+
+	}
+
+	return 0;
+}
+
+//	printk(KERN_INFO "aesd_ioctl The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
+	
+//	unsigned long *mioctl_ptr = kmalloc(sizeof(unsigned long), GFP_KERNEL);
+
+
+//	unsigned long* sss;	
+	//void __user *argp = (void __user *) arg;
+//	printk(KERN_WARNING "receiving cmd: %lX\n", cmd);
+//	printk(KERN_WARNING "receiving address: %lX\n", arg);
+//	printk(KERN_WARNING "*receiving address: %lX\n", *arg);
+//	printk(KERN_WARNING "__get_user(ioctl_ptr, (unsigned long __user *)arg): %lX\n", __get_user(mioctl_ptr, (ulong __user *)arg));
+//	printk(KERN_WARNING "ioctl_ptr: %lX\n", mioctl_ptr);
+//	as_ptr_ioctl_ptr = (void*) mioctl_ptr;
+//	printk(KERN_WARNING "as_ptr_ioctl_ptr: %lX\n", as_ptr_ioctl_ptr);
+//	printk(KERN_WARNING "as_ptr_ioctl_ptr: %lu\n", *as_ptr_ioctl_ptr);
+	
+//	unsigned long *asval = kmalloc(sizeof(unsigned long), GFP_KERNEL);
+
+
+//	*asval = 0L;
+
+//	printk(KERN_WARNING "asval: %lX\n", *asval);
+
+//	memcpy(asval, as_ptr_ioctl_ptr, sizeof(unsigned long));
+
+//	printk(KERN_WARNING "asval: %lX\n", *asval);
+
+	//printk(KERN_WARNING "*ioctl_ptr: %lX\n", *(unsigned long*)ioctl_ptr);
+
+//	copy_from_user(sss, (unsigned long __user *)arg, sizeof(unsigned long));
+
+//	printk(KERN_WARNING "aesd_ioctl arg: %lX\n", sss);
+	
+
+	
+//	int err = 0, tmp;
+//	int retval = 0;
     
 	//
 	 // extract the type and number bitfields, and don't decode
 	 // wrong cmds: return ENOTTY (inappropriate ioctl) before access_ok()
 	 //
-	if (_IOC_TYPE(cmd) != SCULL_IOC_MAGIC) return -ENOTTY;
-	if (_IOC_NR(cmd) > SCULL_IOC_MAXNR) return -ENOTTY;
+//	if (_IOC_TYPE(cmd) != SCULL_IOC_MAGIC) return -ENOTTY;
+//	if (_IOC_NR(cmd) > SCULL_IOC_MAXNR) return -ENOTTY;
 
 	//
 	 // the direction is a bitmask, and VERIFY_WRITE catches R/W
@@ -593,14 +665,15 @@ long aesd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	 // access_ok is kernel-oriented, so the concept of "read" and
 	 // "write" is reversed
 	 //
-	if (_IOC_DIR(cmd) & _IOC_READ)
-		err = !access_ok_wrapper(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
-	else if (_IOC_DIR(cmd) & _IOC_WRITE)
-		err =  !access_ok_wrapper(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
-	if (err) return -EFAULT;
+//	if (_IOC_DIR(cmd) & _IOC_READ)
+//		err = !access_ok_wrapper(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
+//	else if (_IOC_DIR(cmd) & _IOC_WRITE)
+//		err =  !access_ok_wrapper(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
+//	if (err) return -EFAULT;
 	
-	printk(KERN_WARNING "cmd ioctl: %d\n", cmd); 
-
+//	printk(KERN_WARNING "cmd ioctl: %d\n", cmd);
+//	return 0;
+/*
 	switch(cmd) {
 
 		case SCULL_IOCRESET:
@@ -713,10 +786,10 @@ long aesd_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return -ENOTTY;
 	}
 	return retval;
-
-}
-
 */
+//}
+
+
 
 /*
  * The "extended" operations -- only seek
@@ -783,7 +856,7 @@ struct file_operations aesd_fops = {
 	.llseek =   aesd_llseek,
 	.read =     aesd_read,
 	.write =    aesd_write,
-	.unlocked_ioctl = NULL, //aesd_ioctl,
+	.unlocked_ioctl = aesd_ioctl, // .unlocked_ioctl
 	.open =     aesd_open,
 	.release =  aesd_release,
 };
@@ -869,6 +942,33 @@ int aesd_init_module(void)
 		return result;
 	}
 
+
+	int ret_val;
+	/* 
+	 * Register the character device (atleast try) 
+	 */
+	//ret_val = register_chrdev(MAJOR_NUM, DEVICE_NAME, &Fops);
+
+	/* 
+	 * Negative values signify an error 
+	 */
+/*	if (ret_val < 0) {
+		printk(KERN_ALERT "%s failed with %d\n",
+		       "Sorry, registering the character device ", ret_val);
+		return ret_val;
+	}
+
+
+	printk(KERN_INFO "%s The major device number is %d.\n",
+	       "Registeration is a success", MAJOR_NUM);
+	printk(KERN_INFO "If you want to talk to the device driver,\n");
+	printk(KERN_INFO "you'll have to create a device file. \n");
+	printk(KERN_INFO "We suggest you use:\n");
+	printk(KERN_INFO "mknod %s c %d 0\n", DEVICE_FILE_NAME, MAJOR_NUM);
+	printk(KERN_INFO "The device file name is important, because\n");
+	printk(KERN_INFO "the ioctl program assumes that's the\n");
+	printk(KERN_INFO "file you'll use.\n");
+*/
 	/* 
 	 * allocate the devices -- we can't have them static, as the number
 	 * can be specified at load time

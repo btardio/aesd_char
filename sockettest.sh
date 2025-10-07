@@ -87,6 +87,27 @@ function test_send_socket_string
 	fi
 }
 
+
+
+
+echo "sending"
+
+send_socket_string "AESDCHAR_IOCSEEKTO:9,3" /dev/stdout
+
+exit(0)
+
+
+
+
+
+
+
+
+
+
+
+
+
 comparefile=`tempfile`
 test_send_socket_string "swrite1" ${comparefile}
 test_send_socket_string "swrite2" ${comparefile}
