@@ -387,7 +387,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	
 		// iterate again copying the contents to temp_buffer
 		printk(KERN_WARNING "!@#$ dev->pids[pid_index].index_offset: %d\n", dev->pids[pid_index].index_offset);	
-		for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
+		for(b = dev->pids[pid_index].index_offset; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
 			buffer->count--;
 			// write to temp_buffer
 			if (buffer->entry[buffer->out_offs].buffptr != NULL) {
