@@ -81,6 +81,7 @@ function test_send_socket_string
 		echo "Test complete with failure"
 		exit 1
 	else
+		echo "Succeed comparison rslt"
 		cp ${expected_file} ${prev_file}
 		rm ${new_file}
 		rm ${expected_file}
@@ -92,13 +93,27 @@ function test_send_socket_string
 
 echo "sending"
 
-send_socket_string "AESDCHAR_IOCSEEKTO:9,3" /dev/stdout
+comparefile=`tempfile`
+test_send_socket_string "swrite1" ${comparefile}
+test_send_socket_string "swrite2" ${comparefile}
+test_send_socket_string "swrite3" ${comparefile}
+test_send_socket_string "swrite4" ${comparefile}
+test_send_socket_string "swrite5" ${comparefile}
+test_send_socket_string "swrite6" ${comparefile}
+test_send_socket_string "swrite7" ${comparefile}
+test_send_socket_string "swrite8" ${comparefile}
+test_send_socket_string "swrite9" ${comparefile}
+test_send_socket_string "swrite10" ${comparefile}
 
-exit(0)
+seek_result=`tempfile`
+
+send_socket_string "AESDCHAR_IOCSEEKTO:1,3" ${seek_result}
+
+cat ${seek_result}
 
 
 
-
+exit 0
 
 
 

@@ -222,15 +222,16 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 	memset(temp_buffer, 0, ksize(temp_buffer));
 	
 	int b_offset = 0;
-	
+
 	// iterate again copying the contents to temp_buffer
-	
 	for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
 		buffer->count--;
 
 		// write to temp_buffer
 		if (buffer->entry[buffer->out_offs].buffptr != NULL) {
-			memcpy(temp_buffer + b_offset, buffer->entry[buffer->out_offs].buffptr, buffer->entry[buffer->out_offs].size);
+			memcpy(temp_buffer + b_offset, 
+					buffer->entry[buffer->out_offs + dev->pids[pid_index].index_offset % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].buffptr, 
+					buffer->entry[buffer->out_offs + dev->pids[pid_index].index_offset % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size);
 		}
 		
 		
@@ -385,16 +386,25 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 		int b_offset = 0;
 	
 		// iterate again copying the contents to temp_buffer
-	
+		printk(KERN_WARNING "!@#$ dev->pids[pid_index].index_offset: %d\n", dev->pids[pid_index].index_offset);	
 		for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
 			buffer->count--;
-
 			// write to temp_buffer
 			if (buffer->entry[buffer->out_offs].buffptr != NULL) {
-				memcpy(dev->pids[pid_index].fpos_buffer + b_offset, buffer->entry[buffer->out_offs].buffptr, buffer->entry[buffer->out_offs].size);
+				memcpy(dev->pids[pid_index].fpos_buffer + b_offset, 
+					buffer->entry[buffer->out_offs + dev->pids[pid_index].index_offset % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].buffptr, 
+					buffer->entry[buffer->out_offs + dev->pids[pid_index].index_offset % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size);
 			}
-			
+		
+		
 			b_offset += buffer->entry[buffer->out_offs].size;
+
+//			// write to temp_buffer
+//			if (buffer->entry[buffer->out_offs].buffptr != NULL) {
+//				memcpy(dev->pids[pid_index].fpos_buffer + b_offset, buffer->entry[buffer->out_offs].buffptr, buffer->entry[buffer->out_offs].size);
+//			}
+			
+//			b_offset += buffer->entry[buffer->out_offs].size;
 		
 			buffer->out_offs = (buffer->out_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
 	//		printk(KERN_WARNING "temp_buffer: %s\n", temp_buffer);
@@ -581,10 +591,25 @@ ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
 long aesd_ioctl(struct file *filp, unsigned int ioctl_num, unsigned long ioctl_param)
 {
 
+	struct aesd_dev *dev = filp->private_data;
 
 	int i;
 	int *temp;
 	char ch;
+	int pid_index;
+
+
+	printk(KERN_INFO "aesd_ioctl The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
+
+	print_pids(dev);
+
+
+	if (mutex_lock_interruptible(&dev->lock))
+		return -ERESTARTSYS;
+
+
+	pid_index = get_open_pid_or_index(dev );
+
 
 	/* 
 	 * Switch according to the ioctl called 
@@ -607,9 +632,14 @@ long aesd_ioctl(struct file *filp, unsigned int ioctl_num, unsigned long ioctl_p
 
 		//device_write(file, (char *)ioctl_param, i, 0);
 		printk(KERN_WARNING "temp: %d\n", *temp);
+
+		dev->pids[pid_index].index_offset = *temp % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+
 		break;
 
 	}
+  out:
+	mutex_unlock(&dev->lock);
 
 	return 0;
 }
@@ -990,6 +1020,7 @@ int aesd_init_module(void)
 			aesd_devices[i].pids[b].completed = 0;
 			aesd_devices[i].pids[b].fpos = 0;
 			aesd_devices[i].pids[b].fpos_buffer = NULL;
+			aesd_devices[i].pids[b].index_offset = 0;
                	}
 
 	}
