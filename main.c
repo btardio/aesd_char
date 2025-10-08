@@ -210,7 +210,6 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 	int total_size = 0;
 	int old_count = buffer->count;
 	int old_out_offs = buffer->out_offs;
-	int b;
 	
 	// iterate the buffer once to find the total size that it is writing, should be redone to use s_cb
 	for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
@@ -319,6 +318,17 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 		return -ERESTARTSYS;
 
 
+
+    int b;
+    printk(KERN_WARNING "CCC buffer->s_cb: %d\n", buffer->s_cb);
+    for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
+        printk(KERN_WARNING "CCC buffer->entry[b].size: %d\n", buffer->entry[b].size);
+        printk(KERN_WARNING "CCC buffer->entry[b].buffptr %.*s", buffer->entry[b].size, buffer->entry[b].buffptr);
+
+    }
+
+
+	// keep track of the pid, if the process id is the same ( cat for example ), and it read once
 	pid_index = get_open_pid_or_index(dev );
 
 	//dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + count;
@@ -363,7 +373,6 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	int total_size = 0;
 	int old_count = buffer->count;
 	int old_out_offs = buffer->out_offs;
-	int b;
 	
 	// iterate the buffer once to find the total size that it is writing, should be redone to use s_cb
 	for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
