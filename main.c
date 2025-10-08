@@ -426,11 +426,12 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 			
 //			b_offset += buffer->entry[buffer->out_offs].size;
 		
+			printk(KERN_WARNING "temp_buffer at %d: %.*s\n", buffer->out_offs, b_offset, dev->pids[pid_index].fpos_buffer);
+
 			buffer->out_offs = (buffer->out_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
-	//		printk(KERN_WARNING "temp_buffer: %s\n", temp_buffer);
 
 		}
-		printk(KERN_WARNING "000 temp_buffer: %s\n", dev->pids[pid_index].fpos_buffer);
+		printk(KERN_WARNING "000 temp_buffer: %.*s\n", b_offset, dev->pids[pid_index].fpos_buffer);
 
 		printk(KERN_WARNING "000 buffadd: %d\n", *buf);
 //		printk(KERN_WARNING "000 copy_to_user: %.*s\n", MIN(count, buffer->s_cb - dev->pids[pid_index].fpos), dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos);
