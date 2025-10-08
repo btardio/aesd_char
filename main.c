@@ -571,7 +571,7 @@ ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
 			foundNewline
 
 			);
-
+	int b;
     printk(KERN_WARNING "@@@ buffer->s_cb: %d\n", buffer->s_cb);
     for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
        printk(KERN_WARNING "@@@ buffer->entry[b].size: %d\n", buffer->entry[b].size);
