@@ -159,6 +159,16 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 	if (mutex_lock_interruptible(&dev->lock))
 		return -ERESTARTSYS;
 
+
+    int b;
+    printk(KERN_WARNING "CCC buffer->s_cb: %d\n", buffer->s_cb);
+    for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
+        printk(KERN_WARNING "CCC buffer->entry[b].size: %d\n", buffer->entry[b].size);
+        printk(KERN_WARNING "CCC buffer->entry[b].buffptr %.*s", buffer->entry[b].size, buffer->entry[b].buffptr);
+
+    }
+
+
 	// keep track of the pid, if the process id is the same ( cat for example ), and it read once
 	// return 0 to get it to stop its loop, this only works because the size is small and will
 	// never be over the 131072 mark, this can be improved
