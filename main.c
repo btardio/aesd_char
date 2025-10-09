@@ -400,6 +400,17 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 //		return 0;
 //	}
 
+    if (dev->pids[pid_index].fpos_buffer == NULL){
+        printk(KERN_WARNING "dev->pids[pid_index].fpos_buffer is null");
+    } else {
+        printk(KERN_WARNING "dev->pids[pid_index].fpos_buffer is NOT null");
+    }
+
+    printk(KERN_WARNING "dev->pids[pid_index].fpos: %d\n", dev->pids[pid_index].fpos);
+    printk(KERN_WARNING "buffer->s_cb: %d\n", buffer->s_cb);
+
+
+
 	if( dev->pids[pid_index].fpos_buffer == NULL && dev->pids[pid_index].fpos <= buffer->s_cb ){
 
 		dev->pids[pid_index].fpos_buffer = kmalloc(sizeof(char) * total_size, GFP_KERNEL);
