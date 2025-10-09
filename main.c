@@ -80,10 +80,8 @@ int aesd_open(struct inode *inode, struct file *filp)
 	printk(KERN_WARNING "aesd_open  The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
 
 	/* now trim to 0 the length of the device if open was write-only */
-//	if ( (filp->f_flags & O_ACCMODE) == O_WRONLY) {
 	if (mutex_lock_interruptible(&dev->lock))
 		return -ERESTARTSYS;
-		// aesd_trim(dev); /* ignore errors 
 		
 	pid_index = get_open_pid_or_index(dev);
 	dev->pids[pid_index].pid = current->pid;
@@ -92,7 +90,8 @@ int aesd_open(struct inode *inode, struct file *filp)
     kfree(dev->pids[pid_index].fpos_buffer);
     dev->pids[pid_index].fpos_buffer = NULL;
 	print_pids(dev);
-	mutex_unlock(&dev->lock);
+
+    mutex_unlock(&dev->lock);
 
 	return 0;          /* success */
 }
@@ -156,7 +155,6 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 
 	int openindex;
 	printk(KERN_INFO "aesd_cat_read The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
-	//int t;
 	struct aesd_dev *dev = filp->private_data;
        	struct aesd_circular_buffer *buffer = &dev->buffer;
 	struct aesd_qset *dptr;	/* the first listitem */
@@ -181,29 +179,6 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 	// keep track of the pid, if the process id is the same ( cat for example ), and it read once
 	// return 0 to get it to stop its loop, this only works because the size is small and will
 	// never be over the 131072 mark, this can be improved
-/*	
-	openindex = -1;
-	if (current->comm[0] == 'c' && current->comm[1] == 'a' && current->comm[2] == 't') {
-		for ( t = 0; t < PIDS_ARRAY_SIZE; t++ ) {
-			printk(KERN_WARNING "dev->pids[t].pid: %d\n", dev->pids[t].pid);
-			
-			if (current->pid == dev->pids[t].pid ) { //&& dev->pids[t].completed >= dev->buffer.s_cb) {
-				dev->pids[t].pid = 0;
-				mutex_unlock(&dev->lock);
-				return 0;
-			} else if (dev->pids[t].pid == 0) {
-				openindex = t;
-			}
-		}
-		printk(KERN_WARNING "openindex: %d\n", openindex);
-		if (openindex == 0) {
-			mutex_unlock(&dev->lock);
-			return -1;
-		} else {
-			dev->pids[openindex].pid = current->pid;
-		}
-	}
-*/
 	int pid_index;
 	pid_index = get_open_pid_or_index(dev );
 
@@ -293,13 +268,8 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 		return aesd_cat_read(filp, buf, count, f_pos);
 	}
 
-
 	int i;
 
-	//	for ( i = 0; i < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; i++){
-	//		printk(KERN_WARNING "buffer[%d]: %s\n",i, buffer.entry[i].buffptr);
-	//	}
-	
 	int openindex;
 	printk(KERN_INFO "aesd_read The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
 	int t;
@@ -313,16 +283,11 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	int fpos;
 	int pid_index;
 
-
-
 	print_pids(dev);
-
 
 	printk(KERN_WARNING "f_pos: %d\n", *f_pos);
 	if (mutex_lock_interruptible(&dev->lock))
 		return -ERESTARTSYS;
-
-
 
     int b;
     printk(KERN_WARNING "CCC buffer->s_cb: %d\n", buffer->s_cb);
@@ -336,44 +301,8 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	// keep track of the pid, if the process id is the same ( cat for example ), and it read once
 	pid_index = get_open_pid_or_index(dev );
 
-	//dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + count;
-	
-
-	// keep track of the pid, if the process id is the same ( cat for example ), and it read once
-	// return 0 to get it to stop its loop, this only works because the size is small and will
-	// never be over the 131072 mark, this can be improved
-/*	
-	openindex = -1;
-	
-	for ( t = 0; t < PIDS_ARRAY_SIZE; t++ ) {
-		printk(KERN_WARNING "dev->pids[t].pid: %d\n", dev->pids[t].pid);
-		
-		if (current->pid == dev->pids[t].pid ) { //&& dev->pids[t].completed >= dev->buffer.s_cb) {
-			dev->pids[t].pid = 0;
-			fpos = dev->pids[t].fpos;
-			mutex_unlock(&dev->lock);
-			return 0;
-		} else if (dev->pids[t].pid == 0) {
-			openindex = t;
-
-		}
-	}
-	
-*/	
-
-
 	printk(KERN_WARNING "openindex: %d\n", openindex);
 	printk(KERN_WARNING "pid fpos: %d\n", fpos);
-/*
-	if (openindex == 0) {
-		mutex_unlock(&dev->lock);
-		return -1;
-	} else {
-		dev->pids[openindex].pid = current->pid;
-	}
-*/
-	//	}
-
 
 	int total_size = 0;
 	int old_count = buffer->count;
@@ -394,12 +323,6 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	printk(KERN_WARNING "total_size: %d\n", total_size);
 	printk(KERN_WARNING "count: %d\n", count);
 
-	// remove me
-//	if (dev->pids[pid_index].fpos > 3 ) {
-//		mutex_unlock(&dev->lock);
-//
-//		return 0;
-//	}
 
     if (dev->pids[pid_index].fpos_buffer == NULL){
         printk(KERN_WARNING "dev->pids[pid_index].fpos_buffer is null");
@@ -416,7 +339,6 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
             dev->pids[pid_index].fpos_buffer == NULL ||
             dev->pids[pid_index].completed == 1 ) {
         printk(KERN_WARNING "NULL and 1\n");        
-//            dev->pids[pid_index].fpos <= buffer->s_cb ){
 
 		dev->pids[pid_index].fpos_buffer = kmalloc(sizeof(char) * total_size, GFP_KERNEL);
 
@@ -440,12 +362,6 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 			//b_offset += buffer->entry[buffer->out_offs].size;
 			b_offset += buffer->entry[ (buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size;
             printk(KERN_WARNING "new b_offset: %d\n", b_offset);
-//			// write to temp_buffer
-//			if (buffer->entry[buffer->out_offs].buffptr != NULL) {
-//				memcpy(dev->pids[pid_index].fpos_buffer + b_offset, buffer->entry[buffer->out_offs].buffptr, buffer->entry[buffer->out_offs].size);
-//			}
-			
-//			b_offset += buffer->entry[buffer->out_offs].size;
 	        	
 			printk(KERN_WARNING "temp_buffer at %d: %.*s\n", buffer->out_offs, b_offset, dev->pids[pid_index].fpos_buffer);
 
@@ -455,7 +371,6 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 		printk(KERN_WARNING "000 temp_buffer: %.*s\n", b_offset, dev->pids[pid_index].fpos_buffer);
 
 		printk(KERN_WARNING "000 buffadd: %d\n", *buf);
-//		printk(KERN_WARNING "000 copy_to_user: %.*s\n", MIN(count, buffer->s_cb - dev->pids[pid_index].fpos), dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos);
 		printk(KERN_WARNING "000 dev->pids[pid_index].fpos_buffer[0]: %c\n", dev->pids[pid_index].fpos_buffer[0]);
 
 		printk(KERN_WARNING "000 fpos: %d\n", dev->pids[pid_index].fpos);
@@ -471,13 +386,6 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 
 		buffer->out_offs = old_out_offs;
 
-//		if (dev->pids[pid_index].fpos + count <= buffer->s_cb ){
-//			*buf += dev->pids[pid_index].fpos; // note this always at the beginning of the __user buffer
-//		} else {
-//
-//		}
-
-//		*f_pos = 0;
 	} 
 	if ( dev->pids[pid_index].fpos <= buffer->s_cb ) {
 		printk(KERN_WARNING "111 buffaddr: %d\n", *buf);
@@ -487,49 +395,10 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 		printk(KERN_WARNING "111 f_pos: %d\n", *f_pos);
 
 		memcpy(buf, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, buffer->s_cb - dev->pids[pid_index].fpos);	
-		//		return 0;
-		
-//		copy_to_user(buf + dev->pids[pid_index].fpos, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos,  MIN(count, buffer->s_cb - dev->pids[pid_index].fpos ) ); // count
-
-//		*buf += count; // MIN(count, buffer->s_cb - dev->pids[pid_index].fpos ); 
-		//			printk(KERN_WARNING "erroring\n");
-//			retval = -EFAULT;
-			//kfree(dev->pids[pid_index].fpos_buffer);
-//			goto out;
-//		}
-
-//		mutex_unlock(&dev->lock);
-//		return 1;
-//		*f_pos += count;
-		
-		
-//		if (dev->pids[pid_index].fpos + count <= buffer->s_cb ){
-//			*buf += count;
-//			*f_pos += count;
-//		} else {
-//			// todo: possible set new position to last position of s_cb
-//
-//		}
-
 	}
 
 	printk(KERN_WARNING "temp_buffer: %s\n", dev->pids[pid_index].fpos_buffer);
 	printk(KERN_WARNING "buf: %.*s\n", buffer->s_cb, buf);
-	//buffer.count = old_count;
-//	buffer->out_offs = old_out_offs;
-//	*buf += 1;
-/*	
-	if ( copy_to_user(buf, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, count) ) {
-		retval = -EFAULT;
-		kfree(dev->pids[pid_index].fpos_buffer);
-		goto out;
-	}
-*/
-
-//	kfree(temp_buffer);
-
-
-	//retval = total_size;
 
   out:
 	int rval;
@@ -693,181 +562,6 @@ long aesd_ioctl(struct file *filp, unsigned int ioctl_num, unsigned long ioctl_p
 	return 0;
 }
 
-//	printk(KERN_INFO "aesd_ioctl The calling process is \"%s\" (pid %i)\n", current->comm, current->pid);
-	
-//	unsigned long *mioctl_ptr = kmalloc(sizeof(unsigned long), GFP_KERNEL);
-
-
-//	unsigned long* sss;	
-	//void __user *argp = (void __user *) arg;
-//	printk(KERN_WARNING "receiving cmd: %lX\n", cmd);
-//	printk(KERN_WARNING "receiving address: %lX\n", arg);
-//	printk(KERN_WARNING "*receiving address: %lX\n", *arg);
-//	printk(KERN_WARNING "__get_user(ioctl_ptr, (unsigned long __user *)arg): %lX\n", __get_user(mioctl_ptr, (ulong __user *)arg));
-//	printk(KERN_WARNING "ioctl_ptr: %lX\n", mioctl_ptr);
-//	as_ptr_ioctl_ptr = (void*) mioctl_ptr;
-//	printk(KERN_WARNING "as_ptr_ioctl_ptr: %lX\n", as_ptr_ioctl_ptr);
-//	printk(KERN_WARNING "as_ptr_ioctl_ptr: %lu\n", *as_ptr_ioctl_ptr);
-	
-//	unsigned long *asval = kmalloc(sizeof(unsigned long), GFP_KERNEL);
-
-
-//	*asval = 0L;
-
-//	printk(KERN_WARNING "asval: %lX\n", *asval);
-
-//	memcpy(asval, as_ptr_ioctl_ptr, sizeof(unsigned long));
-
-//	printk(KERN_WARNING "asval: %lX\n", *asval);
-
-	//printk(KERN_WARNING "*ioctl_ptr: %lX\n", *(unsigned long*)ioctl_ptr);
-
-//	copy_from_user(sss, (unsigned long __user *)arg, sizeof(unsigned long));
-
-//	printk(KERN_WARNING "aesd_ioctl arg: %lX\n", sss);
-	
-
-	
-//	int err = 0, tmp;
-//	int retval = 0;
-    
-	//
-	 // extract the type and number bitfields, and don't decode
-	 // wrong cmds: return ENOTTY (inappropriate ioctl) before access_ok()
-	 //
-//	if (_IOC_TYPE(cmd) != SCULL_IOC_MAGIC) return -ENOTTY;
-//	if (_IOC_NR(cmd) > SCULL_IOC_MAXNR) return -ENOTTY;
-
-	//
-	 // the direction is a bitmask, and VERIFY_WRITE catches R/W
-	 // transfers. `Type' is user-oriented, while
-	 // access_ok is kernel-oriented, so the concept of "read" and
-	 // "write" is reversed
-	 //
-//	if (_IOC_DIR(cmd) & _IOC_READ)
-//		err = !access_ok_wrapper(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
-//	else if (_IOC_DIR(cmd) & _IOC_WRITE)
-//		err =  !access_ok_wrapper(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
-//	if (err) return -EFAULT;
-	
-//	printk(KERN_WARNING "cmd ioctl: %d\n", cmd);
-//	return 0;
-/*
-	switch(cmd) {
-
-		case SCULL_IOCRESET:
-			aesd_quantum = SCULL_QUANTUM;
-			aesd_qset = SCULL_QSET;
-		break;
-        
-		case SCULL_IOCSQUANTUM: // Set: arg points to the value 
-			if (! capable (CAP_SYS_ADMIN)) {
-				return -EPERM;
-			}
-			retval = __get_user(aesd_quantum, (int __user *)arg);
-		break;
-
-		case SCULL_IOCTQUANTUM: // Tell: arg is the value 
-
-			if (! capable (CAP_SYS_ADMIN)) {
-				return -EPERM;
-			}
-			aesd_quantum = arg;
-		break;
-
-		case SCULL_IOCGQUANTUM: // Get: arg is pointer to result 
-
-			retval = __put_user(aesd_quantum, (int __user *)arg);
-		break;
-
-		case SCULL_IOCQQUANTUM: // Query: return it (it's positive)
-	
-			return aesd_quantum;
-
-		case SCULL_IOCXQUANTUM: // eXchange: use arg as pointer 
-
-			if (! capable (CAP_SYS_ADMIN)) {
-				return -EPERM;
-			}
-			tmp = aesd_quantum;
-			retval = __get_user(aesd_quantum, (int __user *)arg);
-			if (retval == 0) {
-				retval = __put_user(tmp, (int __user *)arg);
-			}
-		break;
-
-		case SCULL_IOCHQUANTUM: // sHift: like Tell + Query 
-
-			if (! capable (CAP_SYS_ADMIN))
-				return -EPERM;
-			tmp = aesd_quantum;
-			aesd_quantum = arg;
-			return tmp;
-        
-		case SCULL_IOCSQSET:
-
-			if (! capable (CAP_SYS_ADMIN))
-				return -EPERM;
-			retval = __get_user(aesd_qset, (int __user *)arg);
-		break;
-
-		case SCULL_IOCTQSET:
-
-			if (! capable (CAP_SYS_ADMIN))
-				return -EPERM;
-			aesd_qset = arg;
-		break;
-
-		case SCULL_IOCGQSET:
-	
-			retval = __put_user(aesd_qset, (int __user *)arg);
-		break;
-
-		case SCULL_IOCQQSET:
-	
-			return aesd_qset;
-
-		case SCULL_IOCXQSET:
-	
-			if (! capable (CAP_SYS_ADMIN))
-				return -EPERM;
-			tmp = aesd_qset;
-			retval = __get_user(aesd_qset, (int __user *)arg);
-			if (retval == 0)
-				retval = put_user(tmp, (int __user *)arg);
-		break;
-
-		case SCULL_IOCHQSET:
-	
-			if (! capable (CAP_SYS_ADMIN))
-				return -EPERM;
-			tmp = aesd_qset;
-			aesd_qset = arg;
-			return tmp;
-
-        //
-         // The following two change the buffer size for aesdpipe.
-         // The aesdpipe device uses this same ioctl method, just to
-         // write less code. Actually, it's the same driver, isn't it?
-         //
-
-	  case SCULL_P_IOCTSIZE:
-
-		aesd_p_buffer = arg;
-		break;
-
-	  case SCULL_P_IOCQSIZE:
-
-		return aesd_p_buffer;
-
-
-	  default:  // redundant, as cmd was checked against MAXNR 
-		return -ENOTTY;
-	}
-	return retval;
-*/
-//}
-
 
 
 /*
@@ -963,10 +657,6 @@ void aesd_cleanup_module(void)
 		kfree(aesd_devices);
 	}
 
-#ifdef SCULL_DEBUG /* use proc only if debugging */
-	aesd_remove_proc();
-#endif
-
 	/* cleanup_module is never called if registering failed */
 	unregister_chrdev_region(devno, aesd_nr_devs);
 	
@@ -1023,32 +713,8 @@ int aesd_init_module(void)
 
 
 	int ret_val;
-	/* 
-	 * Register the character device (atleast try) 
-	 */
-	//ret_val = register_chrdev(MAJOR_NUM, DEVICE_NAME, &Fops);
-
-	/* 
-	 * Negative values signify an error 
-	 */
-/*	if (ret_val < 0) {
-		printk(KERN_ALERT "%s failed with %d\n",
-		       "Sorry, registering the character device ", ret_val);
-		return ret_val;
-	}
-
-
-	printk(KERN_INFO "%s The major device number is %d.\n",
-	       "Registeration is a success", MAJOR_NUM);
-	printk(KERN_INFO "If you want to talk to the device driver,\n");
-	printk(KERN_INFO "you'll have to create a device file. \n");
-	printk(KERN_INFO "We suggest you use:\n");
-	printk(KERN_INFO "mknod %s c %d 0\n", DEVICE_FILE_NAME, MAJOR_NUM);
-	printk(KERN_INFO "The device file name is important, because\n");
-	printk(KERN_INFO "the ioctl program assumes that's the\n");
-	printk(KERN_INFO "file you'll use.\n");
-*/
-	/* 
+	
+    /* 
 	 * allocate the devices -- we can't have them static, as the number
 	 * can be specified at load time
 	 */
@@ -1070,10 +736,11 @@ int aesd_init_module(void)
 			aesd_devices[i].pids[b].fpos = 0;
 			aesd_devices[i].pids[b].fpos_buffer = NULL;
 			aesd_devices[i].pids[b].index_offset = 0;
-               	}
+        }
 
 	}
-        /* At this point call the init function for any friend device */
+    
+    /* At this point call the init function for any friend device */
 	dev = MKDEV(aesd_major, aesd_minor + aesd_nr_devs);
 	
 	dev += aesd_access_init(dev);

@@ -18,9 +18,16 @@ ifeq ($(KERNELRELEASE),)
 
 UNITY_ROOT=test/Unity/
 
-TARGET_TEST = aesd-cirular-buffer_test
+TARGET_TEST_DRIVER = aesd-driver_test
 
-TEST_SRC_FILES=$(UNITY_ROOT)/src/unity.c src/aesd-circular-buffer.c test/aesd-circular-buffer_test.c test/test_runners/aesd-circular-buffer_test_runner.c
+TARGET_TEST_BUFFER = aesd-circular-buffer_test
+
+
+TEST_SRC_FILES_DRIVER=$(UNITY_ROOT)/src/unity.c test/aesd-driver_test.c test/test_runners/aesd-driver_test_runner.c
+
+TEST_SRC_FILES_BUFFER=$(UNITY_ROOT)/src/unity.c src/aesd-circular-buffer.c test/aesd-circular-buffer_test.c test/test_runners/aesd-circular-buffer_test_runner.c 
+
+
 INC_DIRS=-Isrc -I$(UNITY_ROOT)/src
 
 
@@ -32,16 +39,27 @@ modules:
 modules_install:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
 
+test: test_driver test_buffer
 
-test: test_runner
-	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -g $(TEST_SRC_FILES) -o $(TARGET_TEST)
+test_driver: test_runner_driver
+	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -g $(TEST_SRC_FILES_DRIVER) -o $(TARGET_TEST_DRIVER)
 
-test_runner: test/aesd-circular-buffer_test.c
+
+test_buffer: test_runner_buffer
+	$(CC) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) -g $(TEST_SRC_FILES_BUFFER) -o $(TARGET_TEST_BUFFER)
+
+
+test_runner_driver: test/aesd-circular-buffer_test.c test/aesd-driver_test.c
+	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb test/aesd-driver_test.c test/test_runners/aesd-driver_test_runner.c
+
+
+test_runner_buffer: test/aesd-circular-buffer_test.c
 	ruby $(UNITY_ROOT)/auto/generate_test_runner.rb test/aesd-circular-buffer_test.c test/test_runners/aesd-circular-buffer_test_runner.c
 
 
+
 clean:
-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
+	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions aesd-driver_test aesd-circular-buffer_test
 
 .PHONY: modules modules_install clean
 
