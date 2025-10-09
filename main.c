@@ -226,7 +226,7 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 	printk(KERN_WARNING "total_size: %d\n", total_size);
 	printk(KERN_WARNING "count: %d\n", count);
 
-	char* temp_buffer = kmalloc(sizeof(char) * MAX(count, total_size), GFP_KERNEL);
+	char* temp_buffer = kmalloc(sizeof(char) * max_int(count, total_size), GFP_KERNEL);
 
 	memset(temp_buffer, 0, ksize(temp_buffer));
 	
@@ -274,6 +274,10 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 
 inline int min_int(int a, int b) {
 	return (a < b) ? a : b;
+}
+
+inline int max_int(int a, int b) {
+    return (a > b) ? a : b;
 }
 
 /*
@@ -398,7 +402,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 
 	if( dev->pids[pid_index].fpos_buffer == NULL && dev->pids[pid_index].fpos <= buffer->s_cb ){
 
-		dev->pids[pid_index].fpos_buffer = kmalloc(sizeof(char) * MAX(count, total_size), GFP_KERNEL);
+		dev->pids[pid_index].fpos_buffer = kmalloc(sizeof(char) * total_size, GFP_KERNEL);
 
 		memset(dev->pids[pid_index].fpos_buffer, 0, ksize(dev->pids[pid_index].fpos_buffer));
 	
@@ -414,18 +418,19 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 					buffer->entry[(buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].buffptr, 
 					buffer->entry[(buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size);
 			}
-		
+		    printk(KERN_WARNING "completed write to temp_buffer\n");
+
 		
 			//b_offset += buffer->entry[buffer->out_offs].size;
 			b_offset += buffer->entry[ (buffer->out_offs + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size;
-
+            printk(KERN_WARNING "new b_offset: %d\n", b_offset);
 //			// write to temp_buffer
 //			if (buffer->entry[buffer->out_offs].buffptr != NULL) {
 //				memcpy(dev->pids[pid_index].fpos_buffer + b_offset, buffer->entry[buffer->out_offs].buffptr, buffer->entry[buffer->out_offs].size);
 //			}
 			
 //			b_offset += buffer->entry[buffer->out_offs].size;
-		
+	        	
 			printk(KERN_WARNING "temp_buffer at %d: %.*s\n", buffer->out_offs, b_offset, dev->pids[pid_index].fpos_buffer);
 
 			buffer->out_offs = (buffer->out_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
@@ -535,7 +540,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
                 loff_t *f_pos)
 {
-
+    // TODO: reset temp buffer variable
 	printk(KERN_WARNING "111\n");
 
 	struct aesd_dev *dev = filp->private_data;
