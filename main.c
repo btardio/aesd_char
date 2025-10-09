@@ -413,7 +413,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 
 
 	if( 
-            //dev->pids[pid_index].fpos_buffer == NULL && 
+            dev->pids[pid_index].fpos_buffer == NULL ||
             dev->pids[pid_index].completed == 1 ) {
             
 //            dev->pids[pid_index].fpos <= buffer->s_cb ){
