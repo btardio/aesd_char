@@ -88,7 +88,7 @@ int aesd_open(struct inode *inode, struct file *filp)
 	pid_index = get_open_pid_or_index(dev);
 	dev->pids[pid_index].pid = current->pid;
 	dev->pids[pid_index].fpos = 0;
-	dev->pids[pid_index].completed = 0;
+	dev->pids[pid_index].completed = 1;
     kfree(dev->pids[pid_index].fpos_buffer);
     dev->pids[pid_index].fpos_buffer = NULL;
 	print_pids(dev);
@@ -414,8 +414,9 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 
 	if( 
             //dev->pids[pid_index].fpos_buffer == NULL && 
-            dev->pids[pid_index].completed == 1 &&
-            dev->pids[pid_index].fpos <= buffer->s_cb ){
+            dev->pids[pid_index].completed == 1 ) {
+            
+//            dev->pids[pid_index].fpos <= buffer->s_cb ){
 
 		dev->pids[pid_index].fpos_buffer = kmalloc(sizeof(char) * total_size, GFP_KERNEL);
 
@@ -1065,7 +1066,7 @@ int aesd_init_module(void)
 		aesd_devices[i].buffer.in_offs = aesd_devices[i].buffer.out_offs = 0;
 		for ( b = 0; b < PIDS_ARRAY_SIZE; b++) {
 			aesd_devices[i].pids[b].pid = 0;
-			aesd_devices[i].pids[b].completed = 0;
+			aesd_devices[i].pids[b].completed = 1;
 			aesd_devices[i].pids[b].fpos = 0;
 			aesd_devices[i].pids[b].fpos_buffer = NULL;
 			aesd_devices[i].pids[b].index_offset = 0;
