@@ -415,7 +415,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	if( 
             dev->pids[pid_index].fpos_buffer == NULL ||
             dev->pids[pid_index].completed == 1 ) {
-            
+        printk(KERN_WARNING "NULL and 1\n");        
 //            dev->pids[pid_index].fpos <= buffer->s_cb ){
 
 		dev->pids[pid_index].fpos_buffer = kmalloc(sizeof(char) * total_size, GFP_KERNEL);
@@ -481,12 +481,12 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	} 
 	if ( dev->pids[pid_index].fpos <= buffer->s_cb ) {
 		printk(KERN_WARNING "111 buffaddr: %d\n", *buf);
-		//printk(KERN_WARNING "111 copy_to_user: %.*s\n", MIN(count, buffer->s_cb - dev->pids[pid_index].fpos), dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos);
+		printk(KERN_WARNING "111 copy_to_user: %.*s\n", buffer->s_cb - dev->pids[pid_index].fpos, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos);
 		printk(KERN_WARNING "111 dev->pids[pid_index].fpos_buffer[0]: %c\n", dev->pids[pid_index].fpos_buffer[0]);
 		printk(KERN_WARNING "111 fpos: %d\n", dev->pids[pid_index].fpos);
 		printk(KERN_WARNING "111 f_pos: %d\n", *f_pos);
 
-		memcpy(buf, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, min_int(count, buffer->s_cb - dev->pids[pid_index].fpos));	
+		memcpy(buf, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, buffer->s_cb - dev->pids[pid_index].fpos);	
 		//		return 0;
 		
 //		copy_to_user(buf + dev->pids[pid_index].fpos, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos,  MIN(count, buffer->s_cb - dev->pids[pid_index].fpos ) ); // count
