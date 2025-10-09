@@ -114,7 +114,7 @@ int aesd_release(struct inode *inode, struct file *filp)
 	if (pid_index != -1) {
 		dev->pids[pid_index].pid = 0;
 		dev->pids[pid_index].fpos = 0;
-		dev->pids[pid_index].completed = 0;
+		dev->pids[pid_index].completed = 1;
 		kfree(dev->pids[pid_index].fpos_buffer); // TODO this needs more work, if reader fails to get to close()
 		dev->pids[pid_index].fpos_buffer = NULL;
 	}
@@ -409,10 +409,13 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 
     printk(KERN_WARNING "dev->pids[pid_index].fpos: %d\n", dev->pids[pid_index].fpos);
     printk(KERN_WARNING "buffer->s_cb: %d\n", buffer->s_cb);
+    printk(KERN_WARNING "dev->pids[pid_index].completed: %d\n", dev->pids[pid_index].completed);
 
 
-
-	if( dev->pids[pid_index].fpos_buffer == NULL && dev->pids[pid_index].fpos <= buffer->s_cb ){
+	if( 
+            //dev->pids[pid_index].fpos_buffer == NULL && 
+            dev->pids[pid_index].completed == 1 &&
+            dev->pids[pid_index].fpos <= buffer->s_cb ){
 
 		dev->pids[pid_index].fpos_buffer = kmalloc(sizeof(char) * total_size, GFP_KERNEL);
 
@@ -539,7 +542,7 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	} else {	  
 	   	printk(KERN_WARNING "buffer->s_cb: %d\n", buffer->s_cb);
 		printk(KERN_WARNING "dev->pids[pid_index].fpos: %d\n", dev->pids[pid_index].fpos);	
-		rval = MIN(count, buffer->s_cb - dev->pids[pid_index].fpos ); //  count; // dev->pids[pid_index].fpos; //buffer->s_cb;
+		rval = min_int(count, buffer->s_cb - dev->pids[pid_index].fpos ); //  count; // dev->pids[pid_index].fpos; //buffer->s_cb;
 		dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + count;
 
 	}
