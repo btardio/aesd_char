@@ -243,7 +243,7 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 
 	// iterate again copying the contents to temp_buffer
 	for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
-		buffer->count--;
+	    buffer->count--;
 
 		// write to temp_buffer
 		if (buffer->entry[buffer->out_offs].buffptr != NULL) {
@@ -557,7 +557,7 @@ ssize_t aesd_write(struct file *filp, const char __user *buf, size_t count,
                 loff_t *f_pos)
 {
     // TODO: reset temp buffer variable
-	printk(KERN_WARNING "111\n");
+	//printk(KERN_WARNING "111\n");
 
 	struct aesd_dev *dev = filp->private_data;
 	struct aesd_qset *dptr;
