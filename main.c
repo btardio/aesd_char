@@ -89,7 +89,8 @@ int aesd_open(struct inode *inode, struct file *filp)
 	dev->pids[pid_index].pid = current->pid;
 	dev->pids[pid_index].fpos = 0;
 	dev->pids[pid_index].completed = 0;
-
+    kfree(dev->pids[pid_index].fpos_buffer);
+    dev->pids[pid_index].fpos_buffer = NULL;
 	print_pids(dev);
 	mutex_unlock(&dev->lock);
 
@@ -114,7 +115,7 @@ int aesd_release(struct inode *inode, struct file *filp)
 		dev->pids[pid_index].pid = 0;
 		dev->pids[pid_index].fpos = 0;
 		dev->pids[pid_index].completed = 0;
-		kfree(dev->pids[pid_index].fpos_buffer); // this needs more work, if reader fails to get to close()
+		kfree(dev->pids[pid_index].fpos_buffer); // TODO this needs more work, if reader fails to get to close()
 		dev->pids[pid_index].fpos_buffer = NULL;
 	}
 
