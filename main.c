@@ -56,6 +56,14 @@ struct aesd_dev *aesd_devices;	/* allocated in aesd_init_module */
 
 
 
+inline int min_int(int a, int b) {
+	return (a < b) ? a : b;
+}
+
+inline int max_int(int a, int b) {
+    return (a > b) ? a : b;
+}
+
 /*
  * Open and close
  */
@@ -270,14 +278,6 @@ ssize_t aesd_cat_read(struct file *filp, char __user *buf, size_t count, loff_t 
 	mutex_unlock(&dev->lock);
 	return buffer->s_cb;
 
-}
-
-inline int min_int(int a, int b) {
-	return (a < b) ? a : b;
-}
-
-inline int max_int(int a, int b) {
-    return (a > b) ? a : b;
 }
 
 /*
