@@ -110,14 +110,14 @@ int create_pid_buffer(struct aesd_dev* dev, struct aesd_circular_buffer* buffer,
 		int b_offset = 0;
 
 
-
+		printf("dev->pids[pid_index].index_offset: %d\n", dev->pids[pid_index].index_offset);
 		// iterate again copying the contents to temp_buffer
 		for(b = 0; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED - dev->pids[pid_index].index_offset; b++) {
 			
-			buff_index = (b + b_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;	
+			buff_index = (b + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;	
 
 			// write to temp_buffer
-			if (buffer->entry[outoffset].buffptr != NULL) {
+			if (buffer->entry[ buff_index ].buffptr != NULL ) { //outoffset].buffptr != NULL) {
 				memcpy(dev->pids[pid_index].fpos_buffer + b_offset, 
 						buffer->entry[buff_index].buffptr,
 						buffer->entry[buff_index].size);
@@ -145,7 +145,7 @@ int create_pid_buffer(struct aesd_dev* dev, struct aesd_circular_buffer* buffer,
 			printf("temp_buffer at %d: %.*s\n", outoffset, b_offset, dev->pids[pid_index].fpos_buffer);
 #endif
 
-			outoffset = (outoffset + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+			//outoffset = (outoffset + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
 
 		}
 #ifdef __KERNEL__
