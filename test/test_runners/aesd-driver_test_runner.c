@@ -5,6 +5,7 @@
 #include "aesd-circular-buffer.h"
 #include "aesd.h"
 #include "string.h"
+#include "aesd-driver.h"
 #include <stdlib.h>
 
 /*=======External Functions This Runner Calls=====*/
@@ -13,6 +14,7 @@ extern void tearDown(void);
 extern void test_sane(void);
 extern void test_create_pid_buffer();
 extern void test_init(void);
+extern void test_read_create_buffer_000_get_index();
 
 
 /*=======Mock Management=====*/
@@ -74,9 +76,10 @@ static void run_test(UnityTestFunction func, const char* name, int line_num)
 int main(void)
 {
   UnityBegin("test/aesd-driver_test.c");
-  run_test(test_sane, "test_sane", 16);
-  run_test(test_create_pid_buffer, "test_create_pid_buffer", 20);
-  run_test(test_init, "test_init", 24);
+  run_test(test_sane, "test_sane", 20);
+  run_test(test_create_pid_buffer, "test_create_pid_buffer", 24);
+  run_test(test_init, "test_init", 28);
+  run_test(test_read_create_buffer_000_get_index, "test_read_create_buffer_000_get_index", 193);
 
   return UnityEnd();
 }

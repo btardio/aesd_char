@@ -25,6 +25,56 @@
 #endif
 
 
+int get_index(struct aesd_circular_buffer *buffer, int offset) {
+	return buffer->out_offs + offset % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+}
+
+
+struct aesd_buffer_entry *aesd_circular_buffer_find_index_offset_for_fpos(
+		struct aesd_circular_buffer *buffer,
+    		size_t char_offset, 
+		size_t *entry_offset_byte_rtn 
+		)
+{
+
+    struct aesd_buffer_entry *rtn_value = &buffer->entry[buffer->out_offs + 1 % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED];
+    int count = char_offset;
+    int out_offs_count = buffer->out_offs;
+    struct aesd_buffer_entry *counting_entry = rtn_value;
+    int loops_completed = 0;
+    
+
+    if( char_offset < 0 ) {
+	*entry_offset_byte_rtn = -1;
+	return NULL;
+    }
+
+    while (count > -1) {
+	
+	count -= counting_entry->size;
+	counting_entry = &buffer->entry[(out_offs_count + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED];
+	out_offs_count++;
+	loops_completed++;
+
+    }
+    
+    counting_entry = &buffer->entry[(out_offs_count - 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED];
+
+    if(loops_completed > AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED){
+
+	*entry_offset_byte_rtn = -1;
+    
+        return -1;
+
+    } else {
+    
+	*entry_offset_byte_rtn = count + counting_entry->size;
+    
+    	return (out_offs_count - 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+    }
+}
+
+
 void newline_structure_add(
 		struct aesd_dev *dev,
 		struct aesd_buffer_entry *entry, 

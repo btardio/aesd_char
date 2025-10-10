@@ -4,6 +4,10 @@
 #include "aesd-circular-buffer.h"
 #include "aesd.h"
 #include "string.h"
+#include "aesd-driver.h"
+
+int test_variable_offset;
+int test_variable_total_size;
 
 void setUp(void) {
 
@@ -22,5 +26,247 @@ void test_create_pid_buffer() {
 }
 
 void test_init(void) {
+	
+
+	
+
+}
+/*
+void test_read_create_buffer() {
+
+
+
+		_aesd_dev *ddv = malloc(sizeof(_aesd_dev));
+
+	_aesd_buffer_entry *entry = malloc(sizeof(_aesd_buffer_entry));
+
+	_aesd_circular_buffer *buffer = malloc(sizeof(_aesd_circular_buffer));
+
+	memset(ddv, 0, sizeof(_aesd_dev));
+
+	ddv->newlineb = NULL;
+
+	aesd_circular_buffer_init(buffer);
+
+	char* chars = malloc(sizeof(char) * 4);
+	memcpy(chars, "abcd", 4);
+
+
+	entry->buffptr = chars;
+	entry->size = 4;
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 0);
+
+
+	TEST_ASSERT_EQUAL_STRING("abcd\0", ddv->newlineb);
+
+	int i;
+
+	chars = malloc(sizeof(char) * 4);
+	memcpy(chars, "efgh", 4);
+	entry->buffptr = chars;
+	entry->size = 4;
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 0);
+
+	TEST_ASSERT_EQUAL_STRING("abcdefgh\0", ddv->newlineb);
+
+	chars = malloc(sizeof(char) * 4);
+	memcpy(chars, "ijk\n", 4);
+	entry->buffptr = chars;
+	entry->size = 4;
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+
+	//TEST_ASSERT_EQUAL_STRING("abcdefghijk\n", ddv->);
+
+
+	for ( i = 0; i < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; i++){
+		printf("buffer[%d]: %s\n",i, buffer->entry[i].buffptr);
+	}
+
+
+	ddv->pids[0].fpos_buffer = NULL;
+	ddv->pids[0].completed = 1;
+
+	char outbuff[4096];
+	
+	int out_s_fpos_buffer;
+
+	out_s_fpos_buffer = create_pid_buffer(ddv, buffer, &outbuff, 0);
+
+	TEST_ASSERT_EQUAL(12, test_variable_offset);
+	TEST_ASSERT_EQUAL(12, out_s_fpos_buffer);
+
+}
+
+
+
+
+
+
+
+void test_read_create_buffer_000() {
+
+
+
+		_aesd_dev *ddv = malloc(sizeof(_aesd_dev));
+
+	_aesd_buffer_entry *entry = malloc(sizeof(_aesd_buffer_entry));
+
+	_aesd_circular_buffer *buffer = malloc(sizeof(_aesd_circular_buffer));
+
+	memset(ddv, 0, sizeof(_aesd_dev));
+
+	ddv->newlineb = NULL;
+
+	aesd_circular_buffer_init(buffer);
+
+	char* chars = malloc(sizeof(char) * 4);
+	memcpy(chars, "abcd", 4);
+
+
+	entry->buffptr = chars;
+	entry->size = 4;
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 0);
+
+
+	TEST_ASSERT_EQUAL_STRING("abcd\0", ddv->newlineb);
+
+	int i;
+
+	chars = malloc(sizeof(char) * 4);
+	memcpy(chars, "efgh", 4);
+	entry->buffptr = chars;
+	entry->size = 4;
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 0);
+
+	TEST_ASSERT_EQUAL_STRING("abcdefgh\0", ddv->newlineb);
+
+	chars = malloc(sizeof(char) * 4);
+	memcpy(chars, "ijk\n", 4);
+	entry->buffptr = chars;
+	entry->size = 4;
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+
+
+	for ( i = 0; i < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; i++){
+		printf("buffer[%d]: %s\n",i, buffer->entry[i].buffptr);
+	}
+
+
+	ddv->pids[0].fpos_buffer = NULL;
+	ddv->pids[0].completed = 1;
+
+	char outbuff[4096];
+	
+	int out_s_fpos_buffer;
+
+	out_s_fpos_buffer = create_pid_buffer(ddv, buffer, &outbuff, 0);
+
+	TEST_ASSERT_EQUAL(120, test_variable_offset);
+	TEST_ASSERT_EQUAL(120, out_s_fpos_buffer);
+
+}
+
+
+*/
+
+
+void test_read_create_buffer_000_get_index() {
+
+
+
+		_aesd_dev *ddv = malloc(sizeof(_aesd_dev));
+
+	_aesd_buffer_entry *entry = malloc(sizeof(_aesd_buffer_entry));
+
+	_aesd_circular_buffer *buffer = malloc(sizeof(_aesd_circular_buffer));
+
+	memset(ddv, 0, sizeof(_aesd_dev));
+
+	ddv->newlineb = NULL;
+
+	aesd_circular_buffer_init(buffer);
+
+	char* chars = malloc(sizeof(char) * 4);
+	memcpy(chars, "abcd", 4);
+
+
+	entry->buffptr = chars;
+	entry->size = 4;
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 0);
+
+
+	TEST_ASSERT_EQUAL_STRING("abcd\0", ddv->newlineb);
+
+	int i;
+
+	chars = malloc(sizeof(char) * 4);
+	memcpy(chars, "efgh", 4);
+	entry->buffptr = chars;
+	entry->size = 4;
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 0);
+
+	TEST_ASSERT_EQUAL_STRING("abcdefgh\0", ddv->newlineb);
+
+	chars = malloc(sizeof(char) * 4);
+	memcpy(chars, "ijk\n", 4);
+	entry->buffptr = chars;
+	entry->size = 4;
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+	newline_structure_add(ddv, entry, buffer, chars, 4, 1);
+
+
+	for ( i = 0; i < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; i++){
+		printf("buffer[%d]: %s\n",i, buffer->entry[i].buffptr);
+	}
+
+
+	ddv->pids[0].fpos_buffer = NULL;
+	ddv->pids[0].completed = 1;
+	ddv->pids[0].index_offset = 1;
+	char outbuff[4096];
+	
+	int out_s_fpos_buffer;
+
+	out_s_fpos_buffer = create_pid_buffer(ddv, buffer, &outbuff, 0);
+
+	TEST_ASSERT_EQUAL(108, test_variable_total_size);
+	TEST_ASSERT_EQUAL(108, test_variable_offset);
+	TEST_ASSERT_EQUAL(108, out_s_fpos_buffer);
 
 }

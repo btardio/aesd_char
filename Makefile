@@ -23,7 +23,7 @@ TARGET_TEST_DRIVER = aesd-driver_test
 TARGET_TEST_BUFFER = aesd-circular-buffer_test
 
 
-TEST_SRC_FILES_DRIVER=$(UNITY_ROOT)/src/unity.c test/aesd-driver_test.c test/test_runners/aesd-driver_test_runner.c
+TEST_SRC_FILES_DRIVER=$(UNITY_ROOT)/src/unity.c src/aesd-circular-buffer.c src/aesd-driver.c test/aesd-driver_test.c test/test_runners/aesd-driver_test_runner.c
 
 TEST_SRC_FILES_BUFFER=$(UNITY_ROOT)/src/unity.c src/aesd-circular-buffer.c test/aesd-circular-buffer_test.c test/test_runners/aesd-circular-buffer_test_runner.c 
 
@@ -59,14 +59,14 @@ test_runner_buffer: test/aesd-circular-buffer_test.c
 
 
 clean:
-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions aesd-driver_test aesd-circular-buffer_test
+	rm -rf *.mod *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions aesd-driver_test aesd-circular-buffer_test
 
 .PHONY: modules modules_install clean
 
 else
     # called from kernel build system: just declare what our modules are
 
-	aesdchar-objs := main.o access.o aesd-circular-buffer.o
+	aesdchar-objs := main.o access.o aesd-driver.o aesd-circular-buffer.o
 
 	obj-m := aesdchar.o
 endif
