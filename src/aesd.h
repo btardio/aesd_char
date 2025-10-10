@@ -69,6 +69,7 @@ struct pidnode
 	int completed;
 	int fpos;
 	char* fpos_buffer;
+	int s_fpos_buffer;
 	int index_offset;
 };
 
