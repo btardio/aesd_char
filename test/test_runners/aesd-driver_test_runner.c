@@ -14,7 +14,10 @@ extern void tearDown(void);
 extern void test_sane(void);
 extern void test_create_pid_buffer();
 extern void test_init(void);
-extern void test_read_create_buffer_000_get_index();
+extern void test_read_create_buffer();
+extern void test_read_create_buffer_000();
+extern void test_read_create_buffer_get_index_000();
+extern void test_read_create_buffer_000_sequential();
 
 
 /*=======Mock Management=====*/
@@ -76,10 +79,13 @@ static void run_test(UnityTestFunction func, const char* name, int line_num)
 int main(void)
 {
   UnityBegin("test/aesd-driver_test.c");
-  run_test(test_sane, "test_sane", 20);
-  run_test(test_create_pid_buffer, "test_create_pid_buffer", 24);
-  run_test(test_init, "test_init", 28);
-  run_test(test_read_create_buffer_000_get_index, "test_read_create_buffer_000_get_index", 193);
+  run_test(test_sane, "test_sane", 31);
+  run_test(test_create_pid_buffer, "test_create_pid_buffer", 35);
+  run_test(test_init, "test_init", 39);
+  run_test(test_read_create_buffer, "test_read_create_buffer", 46);
+  run_test(test_read_create_buffer_000, "test_read_create_buffer_000", 120);
+  run_test(test_read_create_buffer_get_index_000, "test_read_create_buffer_get_index_000", 206);
+  run_test(test_read_create_buffer_000_sequential, "test_read_create_buffer_000_sequential", 287);
 
   return UnityEnd();
 }

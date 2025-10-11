@@ -43,9 +43,9 @@ int copy_to_user(char* ubuf, char* fbuf, int size){
 
 
 #ifdef __KERNEL__
-int create_pid_buffer(struct aesd_dev* dev, struct aesd_circular_buffer* buffer, char __user *buf, int pid_index) {
+int create_pid_buffer(struct aesd_dev* dev, struct aesd_circular_buffer* buffer, char __user *userbuf, int pid_index) {
 #else
-int create_pid_buffer(struct aesd_dev* dev, struct aesd_circular_buffer* buffer, char *buf, int pid_index) {
+int create_pid_buffer(struct aesd_dev* dev, struct aesd_circular_buffer* buffer, char *userbuf, int pid_index) {
 #endif
 	int total_size = 0;
 	int b;
@@ -143,7 +143,7 @@ int create_pid_buffer(struct aesd_dev* dev, struct aesd_circular_buffer* buffer,
 		printf("000 fpos: %d\n", dev->pids[pid_index].fpos);
 #endif
 
-		if ( copy_to_user(buf, dev->pids[pid_index].fpos_buffer, total_size ) ) {
+		if ( copy_to_user(userbuf, dev->pids[pid_index].fpos_buffer, total_size ) ) {
 #ifdef __KERNEL__
 			kfree(dev->pids[pid_index].fpos_buffer);
 #else
@@ -152,6 +152,8 @@ int create_pid_buffer(struct aesd_dev* dev, struct aesd_circular_buffer* buffer,
 
 			return -1;
 		}
+
+		//buffer->out_offs = old_out_offs;
 
 	}
 

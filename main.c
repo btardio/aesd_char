@@ -272,12 +272,12 @@ out:
  * Data management: read and write
  */
 
-ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
+ssize_t aesd_read(struct file *filp, char __user *userbuf, size_t count,
 		loff_t *f_pos)
 {
 
 	if (current->comm[0] == 'c' && current->comm[1] == 'a' && current->comm[2] == 't') {
-		return aesd_cat_read(filp, buf, count, f_pos);
+		return aesd_cat_read(filp, userbuf, count, f_pos);
 	}
 
 	int i;
@@ -338,31 +338,30 @@ ssize_t aesd_read(struct file *filp, char __user *buf, size_t count,
 	printk(KERN_WARNING "dev->pids[pid_index].completed: %d\n", dev->pids[pid_index].completed);
 
 	printk(KERN_WARNING "000 f_pos: %d\n", *f_pos);
-	int s_read_buffer = create_pid_buffer(dev, buffer, buf, pid_index);
+	int s_read_buffer = create_pid_buffer(dev, buffer, userbuf, pid_index);
 
 	if (s_read_buffer <= 0) {
 		goto out;
 	}
 
 	if ( dev->pids[pid_index].fpos <= s_read_buffer ) { //buffer->s_cb ) {
-		printk(KERN_WARNING "111 buffaddr: %d\n", *buf);
 		printk(KERN_WARNING "111 copy_to_user: %.*s\n", buffer->s_cb - dev->pids[pid_index].fpos, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos);
 		printk(KERN_WARNING "111 dev->pids[pid_index].fpos_buffer[0]: %c\n", dev->pids[pid_index].fpos_buffer[0]);
 		printk(KERN_WARNING "111 fpos: %d\n", dev->pids[pid_index].fpos);
 		printk(KERN_WARNING "111 f_pos: %d\n", *f_pos);
 
-		memcpy(buf, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, min_int(count, s_read_buffer - dev->pids[pid_index].fpos));
+		memcpy(userbuf, dev->pids[pid_index].fpos_buffer + dev->pids[pid_index].fpos, min_int(count, s_read_buffer - dev->pids[pid_index].fpos));
 	}
 
 	printk(KERN_WARNING "~~~ temp_buffer: %s\n", dev->pids[pid_index].fpos_buffer);
-	printk(KERN_WARNING "buf: %.*s\n", buffer->s_cb, buf);
+	printk(KERN_WARNING "userbuf: %.*s\n", buffer->s_cb, userbuf);
 
 out:
 	int rval;
 
 	if (dev->pids[pid_index].fpos >= s_read_buffer ) { //buffer->s_cb ){
 		rval = 0;
-		dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + count;
+		dev->pids[pid_index].fpos = dev->pids[pid_index].fpos + min_int(count, s_read_buffer - dev->pids[pid_index].fpos); //count;
 		//kfree(dev->pids[pid_index].fpos_buffer);
 		//dev->pids[pid_index].fpos_buffer = NULL;
 
