@@ -3,10 +3,10 @@
  */
 #ifdef __KERNEL__
 #include <linux/cdev.h>
+#include <linux/ktime.h>
 #else
 #include <sys/types.h>
 #endif
-
 #include "aesd-circular-buffer.h"
 
 #define MAX(a,b) ( ( a > b ) ? ( a ) : ( b ) )
@@ -93,6 +93,7 @@ struct aesd_dev {
 	int s_newlineb;
 	struct aesd_circular_buffer buffer;
 	_pidnode pids[PIDS_ARRAY_SIZE];
+
 };
 
 typedef struct aesd_dev _aesd_dev;

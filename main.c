@@ -72,7 +72,7 @@ inline int max_int(int a, int b) {
 int aesd_open(struct inode *inode, struct file *filp)
 {
 	struct aesd_dev *dev; /* device information */
-
+	unsigned long time = jiffies;
 	dev = container_of(inode->i_cdev, struct aesd_dev, cdev);
 	filp->private_data = dev; /* for other methods */
 
@@ -93,7 +93,16 @@ int aesd_open(struct inode *inode, struct file *filp)
 	print_pids(dev);
 
 	mutex_unlock(&dev->lock);
+/*
+	int i;
+	int sum = 0;
 
+	for ( i = 0; i < PIDS_ARRAY_SIZE; i++ ) {
+		if ( i != pid_index ) {
+			sum += dev->pids[i];
+		}
+	}
+*/
 	return 0;          /* success */
 }
 
@@ -257,90 +266,6 @@ out:
 
 }
 
-/*
-int create_pid_buffer(struct aesd_dev* dev, struct aesd_circular_buffer* buffer, char __user *buf, int pid_index) {
-
-	int total_size = 0;
-	int b;
-
-	int outoffset = buffer->out_offs;
-	int b_offset;
-
-	if( dev->pids[pid_index].fpos_buffer == NULL || dev->pids[pid_index].completed == 1 ) {
-		// b_offset = outoffset;
-		b_offset = get_index(buffer, dev->pids[pid_index].index_offset);
-
-		// this loop can probably be improved placing it in the cirular buffer, keep track of total entry size
-		for(b = b_offset; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
-
-			total_size += buffer->entry[b + 1 % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size;
-			//outoffset = (outoffset + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
-
-		}
-
-		printk(KERN_WARNING "total_size: %d\n", total_size);
-		printk(KERN_WARNING "buffer->s_cb: %d\n", buffer->s_cb);
-
-		// get the size of all entries in buffer
-		dev->pids[pid_index].s_fpos_buffer = total_size;
-
-		// handle 0 size
-		if (dev->pids[pid_index].s_fpos_buffer == 0){
-			return 0;
-		}
-
-		printk(KERN_WARNING "NULL and 1\n");        
-
-		dev->pids[pid_index].fpos_buffer = kmalloc(sizeof(char) * (total_size), GFP_KERNEL);
-
-		memset(dev->pids[pid_index].fpos_buffer, 0, ksize(dev->pids[pid_index].fpos_buffer));
-
-		int b_offset = 0;
-
-
-
-		// iterate again copying the contents to temp_buffer
-		printk(KERN_WARNING "!@#$ dev->pids[pid_index].index_offset: %d\n", dev->pids[pid_index].index_offset);	
-		for(b = b_offset; b < AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED; b++) {
-			
-			// write to temp_buffer
-			if (buffer->entry[outoffset].buffptr != NULL) {
-				memcpy(dev->pids[pid_index].fpos_buffer + b_offset, 
-						buffer->entry[(outoffset + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].buffptr, 
-						buffer->entry[(outoffset + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size);
-			}
-			printk(KERN_WARNING "completed write to temp_buffer\n");
-
-			//b_offset += buffer->entry[buffer->out_offs].size;
-			b_offset += buffer->entry[ (outoffset + dev->pids[pid_index].index_offset) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED].size;
-			printk(KERN_WARNING "new b_offset: %d\n", b_offset);
-
-			printk(KERN_WARNING "temp_buffer at %d: %.*s\n", outoffset, b_offset, dev->pids[pid_index].fpos_buffer);
-
-			outoffset = (outoffset + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
-
-		}
-		printk(KERN_WARNING "000 temp_buffer: %.*s\n", b_offset, dev->pids[pid_index].fpos_buffer);
-
-		printk(KERN_WARNING "000 buffadd: %d\n", *buf);
-		printk(KERN_WARNING "000 dev->pids[pid_index].fpos_buffer[0]: %c\n", dev->pids[pid_index].fpos_buffer[0]);
-
-		printk(KERN_WARNING "000 fpos: %d\n", dev->pids[pid_index].fpos);
-
-		if ( copy_to_user(buf, dev->pids[pid_index].fpos_buffer, dev->buffer.s_cb ) ) { // TODO min_int(count, s_read_buffer - dev->pids[pid_index].fpos));
-			kfree(dev->pids[pid_index].fpos_buffer);
-			return -1;
-		}
-
-		// need to cpy pointer for kfree !!!
-
-		//buffer->out_offs = old_out_offs;
-
-	}
-
-	return dev->pids[pid_index].s_fpos_buffer;
-}
-*/
 
 
 /*
